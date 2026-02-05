@@ -1,0 +1,25 @@
+# Ignore build output and executables
+shell
+*.exe
+*.out
+*.o
+*.obj
+
+# Ignore build folders
+/build/
+Debug/
+Release/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+*.log
+
+# Ignore core dumps
+core
+*.core
