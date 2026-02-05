@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 
 #include "include/main.h"
+#include "include/builtin.h"
 
 int main(int argc, char **argv)
 {
@@ -84,7 +85,6 @@ char **lsh_split_line(char *line)
 
         if (position >= bufferSize)
         {
-
             bufferSize *= 2;
             char **newTokens = realloc(tokens, bufferSize * sizeof(char *));
 
@@ -136,5 +136,12 @@ int lsh_launch(char **args)
 
 int lsh_execute(char **args)
 {
-    return 0;
+    if (!args[0])
+        return 1;
+
+    for (size_t i = 0; i < NUM_BUILTINS; i++)
+        if (strcmp(args[0], builtins[i].name) == 0)
+            return (*builtins[i].func)(args);
+
+    return lsh_launch(args);
 }

@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -I.
-SRC = src/main.c
+SRC = $(wildcard src/*.c)
 OUT = shell
 
 all: $(OUT)
