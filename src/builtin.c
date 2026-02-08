@@ -78,12 +78,15 @@ int moss_pwd(char **args)
         return 1;
     }
 
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    if (getcwd(cwd, bufsize) != NULL)
         printf("%s\n", cwd);
-    else if (errno == ERANGE)
-        fprintf(stderr, "MOSS: Current directory path is too long.\n");
     else
-        perror("MOSS");
+    {
+        if (errno == ERANGE)
+            fprintf(stderr, "MOSS: Current directory path is too long.\n");
+        else
+            perror("MOSS");
+    }
 
     free(cwd);
 

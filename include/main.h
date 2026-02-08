@@ -4,7 +4,6 @@
 #define TOK_DELIMETER " \t\r\n\a"
 
 void moss_loop();
-void moss_init_signals();
 char *moss_read_line();
 char **moss_split_line(char *);
 int moss_execute(char **);

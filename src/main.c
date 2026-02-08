@@ -7,6 +7,7 @@
 
 #include "include/main.h"
 #include "include/builtin.h"
+#include "include/signals.h"
 
 int main(int argc, char **argv)
 {
@@ -20,10 +21,6 @@ int main(int argc, char **argv)
     // do shutdown/cleanup
 
     return EXIT_SUCCESS;
-}
-
-void moss_init_signals()
-{
 }
 
 /**
@@ -114,12 +111,12 @@ allocationFailed:
 
 int moss_launch(char **args)
 {
-    pid_t pid;
     int status;
-    pid = fork();
+    pid_t pid = fork();
 
     if (pid == 0)
     {
+        setpgid(0, 0);
         if (execvp(args[0], args) == -1)
             perror("MOSS");
 
@@ -131,10 +128,15 @@ int moss_launch(char **args)
     }
     else
     {
+        setpgid(pid, pid);
+        moss_foreground_pgid = pid;
+
         do
         {
             waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+        moss_foreground_pgid = 0;
     }
 
     return 1;
