@@ -13,8 +13,8 @@ extern int builtins_count;
 extern const int NUM_BUILTINS;
 
 // built in functions
-int lsh_cd(char **);
-int lsh_help(char **);
-int lsh_exit(char **);
-int lsh_pwd(char **);
-int lsh_clear(char **);
+int moss_cd(char **);
+int moss_help(char **);
+int moss_exit(char **);
+int moss_pwd(char **);
+int moss_clear(char **);

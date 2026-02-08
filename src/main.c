@@ -12,7 +12,8 @@ int main(int argc, char **argv)
 {
     // load config files later
 
-    lsh_loop();
+    // MOSS is just a name of the shell
+    moss_loop();
     // printf("hello world");
 
     // do shutdown/cleanup
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
  * parsing: spearate the command string into program arguments
  * execute: run the parsed command
  */
-void lsh_loop(void)
+void moss_loop(void)
 {
     char *line;
     char **args;
@@ -35,9 +36,9 @@ void lsh_loop(void)
     do
     {
         printf("> ");
-        line = lsh_read_line();
-        args = lsh_split_line(line);
-        status = lsh_execute(args);
+        line = moss_read_line();
+        args = moss_split_line(line);
+        status = moss_execute(args);
 
         free(line);
         free(args);
@@ -45,7 +46,7 @@ void lsh_loop(void)
 }
 
 // starting with a block then dynamically allocating more space if needed
-char *lsh_read_line(void)
+char *moss_read_line(void)
 {
     char *line = NULL;
     size_t bufSize = 0;
@@ -67,16 +68,16 @@ char *lsh_read_line(void)
 }
 
 // tokenizing the commands by white spaces as delimeters
-char **lsh_split_line(char *line)
+char **moss_split_line(char *line)
 {
-    int bufferSize = LSH_TOK_BUFFERSIZE, position = 0;
+    int bufferSize = TOK_BUFFERSIZE, position = 0;
     char **tokens = (char **)malloc(bufferSize * sizeof(char *));
     char *token;
 
     if (!tokens)
         goto allocationFailed;
 
-    token = strtok(line, LSH_TOK_DELIMETER);
+    token = strtok(line, TOK_DELIMETER);
 
     while (token != NULL)
     {
@@ -94,19 +95,19 @@ char **lsh_split_line(char *line)
             tokens = newTokens;
         }
 
-        token = strtok(NULL, LSH_TOK_DELIMETER);
+        token = strtok(NULL, TOK_DELIMETER);
     }
 
     tokens[position] = NULL;
     return tokens;
 
 allocationFailed:
-    fprintf(stderr, "lsh: allocation failed\n");
+    fprintf(stderr, "MOSS: allocation failed\n");
     free(tokens);
     exit(EXIT_FAILURE);
 }
 
-int lsh_launch(char **args)
+int moss_launch(char **args)
 {
     pid_t pid;
     int status;
@@ -115,13 +116,13 @@ int lsh_launch(char **args)
     if (pid == 0)
     {
         if (execvp(args[0], args) == -1)
-            perror("lsh");
+            perror("MOSS");
 
         exit(EXIT_FAILURE);
     }
     else if (pid < 0)
     {
-        perror("lsh");
+        perror("MOSS");
     }
     else
     {
@@ -134,7 +135,7 @@ int lsh_launch(char **args)
     return 1;
 }
 
-int lsh_execute(char **args)
+int moss_execute(char **args)
 {
     if (!args[0])
         return 1;
@@ -143,5 +144,5 @@ int lsh_execute(char **args)
         if (strcmp(args[0], builtins[i].name) == 0)
             return (*builtins[i].func)(args);
 
-    return lsh_launch(args);
+    return moss_launch(args);
 }

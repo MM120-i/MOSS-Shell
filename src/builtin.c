@@ -1,4 +1,3 @@
-// Built in Shell functions
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -8,39 +7,39 @@
 #include "include/builtin.h"
 
 const struct builtin builtins[] = {
-    {"cd", lsh_cd},
-    {"help", lsh_help},
-    {"exit", lsh_exit},
-    {"pwd", lsh_pwd},
-    {"clear", lsh_clear},
+    {"cd", moss_cd},
+    {"help", moss_help},
+    {"exit", moss_exit},
+    {"pwd", moss_pwd},
+    {"clear", moss_clear},
 };
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
 
-int lsh_cd(char **args)
+int moss_cd(char **args)
 {
     if (!args[1])
     {
         char *home = getenv("HOME");
 
         if (!home)
-            fprintf(stderr, "lsh: cd: home not set.\n");
+            fprintf(stderr, "MOSS: cd: home not set.\n");
         else if (chdir(home) != 0)
-            perror("lsh");
+            perror("MOSS");
 
         return 1;
     }
 
     if (chdir(args[1]) != 0)
-        perror("lsh");
+        perror("MOSS");
 
     if (args[2])
-        fprintf(stderr, "lsh: cd: too many arguments.\n");
+        fprintf(stderr, "MOSS: cd: too many arguments.\n");
 
     return 1;
 }
 
-int lsh_help(char **args)
+int moss_help(char **args)
 {
     (void)args;
     printf("Type programs names and arguments, and hit enter.\n");
@@ -54,13 +53,13 @@ int lsh_help(char **args)
     return 1;
 }
 
-int lsh_exit(char **args)
+int moss_exit(char **args)
 {
     (void)args;
     return 0;
 }
 
-int lsh_pwd(char **args)
+int moss_pwd(char **args)
 {
     (void)args;
     char cwd[SIZE];
@@ -68,12 +67,12 @@ int lsh_pwd(char **args)
     if (getcwd(cwd, sizeof(cwd)) != NULL)
         printf("%s\n", cwd);
     else
-        perror("lsh");
+        perror("MOSS");
 
     return 1;
 }
 
-int lsh_clear(char **args)
+int moss_clear(char **args)
 {
     (void)args;
     printf("\033[H\033[J");
