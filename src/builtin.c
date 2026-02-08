@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+#include <errno.h>
 
 #include "include/builtin.h"
 
@@ -62,12 +63,29 @@ int moss_exit(char **args)
 int moss_pwd(char **args)
 {
     (void)args;
-    char cwd[SIZE];
+
+#ifdef PATH_MAX
+    size_t bufsize = PATH_MAX;
+#else
+    size_t bufsize = 4096;
+#endif
+
+    char *cwd = (char *)malloc(bufsize);
+
+    if (!cwd)
+    {
+        perror("MOSS: malloc");
+        return 1;
+    }
 
     if (getcwd(cwd, sizeof(cwd)) != NULL)
         printf("%s\n", cwd);
+    else if (errno == ERANGE)
+        fprintf(stderr, "MOSS: Current directory path is too long.\n");
     else
         perror("MOSS");
+
+    free(cwd);
 
     return 1;
 }

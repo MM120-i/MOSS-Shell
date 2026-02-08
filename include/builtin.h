@@ -1,7 +1,5 @@
 #pragma once
 
-#define SIZE 1024
-
 struct builtin
 {
     char *name;

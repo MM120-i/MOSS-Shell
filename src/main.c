@@ -10,6 +10,7 @@
 
 int main(int argc, char **argv)
 {
+    moss_init_signals();
     // load config files later
 
     // MOSS is just a name of the shell
@@ -21,13 +22,17 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
+void moss_init_signals()
+{
+}
+
 /**
  * we r gonna be reading, parsing, and executing
  * read: read the command from stdin
  * parsing: spearate the command string into program arguments
  * execute: run the parsed command
  */
-void moss_loop(void)
+void moss_loop()
 {
     char *line;
     char **args;
@@ -46,7 +51,7 @@ void moss_loop(void)
 }
 
 // starting with a block then dynamically allocating more space if needed
-char *moss_read_line(void)
+char *moss_read_line()
 {
     char *line = NULL;
     size_t bufSize = 0;
