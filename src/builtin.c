@@ -67,7 +67,7 @@ int moss_pwd(char **args)
 #ifdef PATH_MAX
     size_t bufsize = PATH_MAX;
 #else
-    size_t bufsize = 4096;
+    size_t bufsize = SIZE;
 #endif
 
     char *cwd = (char *)malloc(bufsize);
