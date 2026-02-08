@@ -16,7 +16,6 @@ int main(int argc, char **argv)
 
     // MOSS is just a name of the shell
     moss_loop();
-    // printf("hello world");
 
     // do shutdown/cleanup
 

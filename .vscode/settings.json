@@ -1,4 +1,25 @@
 {
+  "C_Cpp.default.compilerPath": "C:/cygwin64/bin/gcc.exe",
+  "C_Cpp.default.intelliSenseMode": "gcc-x64",
+  "C_Cpp.default.cStandard": "c11",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.includePath": [
+    "C:/cygwin64/usr/include",
+    "C:/cygwin64/lib/gcc/x86_64-pc-cygwin/13/include",
+    "${workspaceFolder}/**"
+  ],
+  "terminal.integrated.profiles.windows": {
+    "Cygwin": {
+      "path": "C:/cygwin64/bin/bash.exe",
+      "args": [
+        "--login",
+        "-i"
+      ],
+      "cwd": "${workspaceFolder}",
+      "icon": "terminal-bash"
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Cygwin",
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",

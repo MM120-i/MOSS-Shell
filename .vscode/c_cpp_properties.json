@@ -1,15 +1,11 @@
 {
   "configurations": [
     {
-      "name": "Cygwin",
-      "includePath": [
-        "C:/cygwin64/usr/include",
-        "C:/cygwin64/lib/gcc/x86_64-pc-cygwin/13/include",
-        "${workspaceFolder}/**"
-      ],
+      "name": "windows-gcc-x64",
+      "includePath": ["${workspaceFolder}/**"],
       "compilerPath": "C:/cygwin64/bin/gcc.exe",
-      "cStandard": "c11",
-      "cppStandard": "c++17",
+      "cStandard": "${default}",
+      "cppStandard": "${default}",
       "intelliSenseMode": "gcc-x64"
     }
   ],
