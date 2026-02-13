@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <string.h>
 
 #include "include/main.h"
 #include "include/builtin.h"
@@ -71,72 +72,149 @@ char *moss_read_line()
 // tokenizing the commands by white spaces as delimeters
 char **moss_split_line(char *line)
 {
-    int bufferSize = TOK_BUFFERSIZE, position = 0;
+    if (!line)
+    {
+        fprintf(stderr, "MOSS: split_line: NULL input\n");
+        return NULL;
+    }
+
+    int bufferSize = TOK_INITIAL_BUFFER, position = 0;
     char **tokens = (char **)malloc(bufferSize * sizeof(char *));
-    char *token;
 
     if (!tokens)
-        goto allocationFailed;
+    {
+        fprintf(stderr, "MOSS: allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
 
-    token = strtok(line, TOK_DELIMETER);
+    char *savePtr = NULL;
+    char *token = strtok_r(line, TOK_DELIMETER, &savePtr);
 
     while (token != NULL)
     {
-        tokens[position] = token;
-        position++;
+        const size_t tlen = strlen(token);
 
-        if (position >= bufferSize)
+        if (tlen == 0)
         {
-            bufferSize *= 2;
-            char **newTokens = realloc(tokens, bufferSize * sizeof(char *));
-
-            if (!newTokens)
-                goto allocationFailed;
-
-            tokens = newTokens;
+            token = strtok_r(NULL, TOK_DELIMETER, &savePtr);
+            continue;
         }
 
-        token = strtok(NULL, TOK_DELIMETER);
+        if (tlen > (size_t)TOK_MAX_TOKEN_LEN)
+        {
+            fprintf(stderr, "MOSS: token too long (max %d): %zu\n", TOK_MAX_TOKEN_LEN, tlen);
+            free(tokens);
+            return NULL;
+        }
+
+        if (position >= bufferSize - 1)
+        {
+            int newSize = bufferSize * 2;
+            char **newTokens = realloc(tokens, (size_t)newSize * sizeof(char *));
+
+            if (!newTokens)
+            {
+                fprintf(stderr, "MOSS: allocation failed\n");
+                free(tokens);
+                exit(EXIT_FAILURE);
+            }
+
+            tokens = newTokens;
+            bufferSize = newSize;
+        }
+
+        tokens[position++] = token;
+        token = strtok_r(NULL, TOK_DELIMETER, &savePtr);
+    }
+
+    if (position >= bufferSize)
+    {
+        char **newTokens = realloc(tokens, (size_t)(bufferSize + 1) * sizeof(char *));
+
+        if (!newTokens)
+        {
+            fprintf(stderr, "MOSS: allocation failed\n");
+            free(tokens);
+            exit(EXIT_FAILURE);
+        }
+
+        tokens = newTokens;
+        bufferSize++;
     }
 
     tokens[position] = NULL;
     return tokens;
-
-allocationFailed:
-    fprintf(stderr, "MOSS: allocation failed\n");
-    free(tokens);
-    exit(EXIT_FAILURE);
 }
 
 int moss_launch(char **args)
 {
-    int status;
+    if (!args || !args[0])
+    {
+        fprintf(stderr, "MOSS: invalid args to launch\n");
+        return 0;
+    }
+
+    int status = 0;
     pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        perror("MOSS: fork");
+        return 0;
+    }
 
     if (pid == 0)
     {
-        setpgid(0, 0);
-        if (execvp(args[0], args) == -1)
-            perror("MOSS");
-
-        exit(EXIT_FAILURE);
-    }
-    else if (pid < 0)
-    {
-        perror("MOSS");
-    }
-    else
-    {
-        setpgid(pid, pid);
-        moss_foreground_pgid = pid;
-
-        do
+        // for child process:
+        // put the child process in its own process group (leader = its pid)
+        if (setpgid(0, 0) == -1)
         {
-            waitpid(pid, &status, WUNTRACED);
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+            perror("MOSS: setpgid (child)");
+            _exit(126);
+        }
 
-        moss_foreground_pgid = 0;
+        if (execvp(args[0], args) == -1)
+        {
+            perror("MOSS");
+            _exit(126);
+        }
     }
+
+    // for the parent process:
+    // ensure child is in its own process group. We also ignore any race (EACCESS/EINVAL) if child areadt set it
+    if (setpgid(pid, pid) == -1)
+        if (errno != EACCES && errno != EINVAL && errno != ESRCH)
+            perror("MOSS: setpgid (parent)");
+
+    moss_foreground_pgid = pid;
+
+    // so we wait for child process to exit/stopped/interrupted
+    while (1)
+    {
+        pid_t w = waitpid(pid, &status, WUNTRACED);
+
+        if (w == -1)
+        {
+            if (errno == EINTR)
+                continue;
+
+            perror("MOSS: waitpid");
+            break;
+        }
+
+        if (WIFEXITED(status))
+            break;
+
+        if (WIFSIGNALED(status))
+            break;
+
+        // when child stopps (Ctrl + Z).
+        // TODO: Move job to background and return to prompt
+        if (WIFSTOPPED(status))
+            break;
+    }
+
+    moss_foreground_pgid = 0;
 
     return 1;
 }
