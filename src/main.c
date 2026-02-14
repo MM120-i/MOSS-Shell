@@ -5,20 +5,25 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
+#include <stdbool.h>
 
 #include "include/main.h"
 #include "include/builtin.h"
 #include "include/signals.h"
 
+private int errorCounter = 0;
+private time_t errorWindowStart = 0;
+
 int main(int argc, char **argv)
 {
     moss_init_signals();
-    // load config files later
 
-    // MOSS is just a name of the shell
+    // TODO: load config files later
+
     moss_loop();
 
-    // do shutdown/cleanup
+    // TODO: do shutdown/cleanup
 
     return EXIT_SUCCESS;
 }
@@ -61,7 +66,7 @@ char *moss_read_line()
         }
         else
         {
-            perror("readline");
+            safeError("failed to read input");
             exit(EXIT_FAILURE);
         }
     }
@@ -83,7 +88,7 @@ char **moss_split_line(char *line)
 
     if (!tokens)
     {
-        fprintf(stderr, "MOSS: allocation failed\n");
+        safeError("allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -102,7 +107,14 @@ char **moss_split_line(char *line)
 
         if (tlen > (size_t)TOK_MAX_TOKEN_LEN)
         {
-            fprintf(stderr, "MOSS: token too long (max %d): %zu\n", TOK_MAX_TOKEN_LEN, tlen);
+            safeError("token too long");
+            free(tokens);
+            return NULL;
+        }
+
+        if (!isSafe(token))
+        {
+            safeError("invalid characters in token");
             free(tokens);
             return NULL;
         }
@@ -114,7 +126,7 @@ char **moss_split_line(char *line)
 
             if (!newTokens)
             {
-                fprintf(stderr, "MOSS: allocation failed\n");
+                safeError("allocation failed");
                 free(tokens);
                 exit(EXIT_FAILURE);
             }
@@ -133,7 +145,7 @@ char **moss_split_line(char *line)
 
         if (!newTokens)
         {
-            fprintf(stderr, "MOSS: allocation failed\n");
+            safeError("allocation failed");
             free(tokens);
             exit(EXIT_FAILURE);
         }
@@ -150,7 +162,7 @@ int moss_launch(char **args)
 {
     if (!args || !args[0])
     {
-        fprintf(stderr, "MOSS: invalid args to launch\n");
+        safeError("invalid arguments");
         return 0;
     }
 
@@ -159,37 +171,31 @@ int moss_launch(char **args)
 
     if (pid < 0)
     {
-        perror("MOSS: fork");
+        safeError("failed to fork process");
         return 0;
     }
 
     if (pid == 0)
     {
-        // for child process:
-        // put the child process in its own process group (leader = its pid)
         if (setpgid(0, 0) == -1)
         {
-            perror("MOSS: setpgid (child)");
             _exit(126);
         }
 
         if (execvp(args[0], args) == -1)
         {
-            perror("MOSS");
             _exit(126);
         }
     }
 
-    // for the parent process:
-    // ensure child is in its own process group. We also ignore any race (EACCESS/EINVAL) if child areadt set it
     if (setpgid(pid, pid) == -1)
         if (errno != EACCES && errno != EINVAL && errno != ESRCH)
-            perror("MOSS: setpgid (parent)");
+            safeError("failed to set process group");
 
     moss_foreground_pgid = pid;
 
     // so we wait for child process to exit/stopped/interrupted
-    while (1)
+    while (true)
     {
         pid_t w = waitpid(pid, &status, WUNTRACED);
 
@@ -198,7 +204,7 @@ int moss_launch(char **args)
             if (errno == EINTR)
                 continue;
 
-            perror("MOSS: waitpid");
+            safeError("error waiting for process");
             break;
         }
 
@@ -229,4 +235,34 @@ int moss_execute(char **args)
             return (*builtins[i].func)(args);
 
     return moss_launch(args);
+}
+
+private bool isSafe(const char *token)
+{
+    if (!token || *token == '\0')
+        return 0;
+
+    return strcspn(token, DANGEROUS_CHARS) == strlen(token);
+}
+
+private bool checkRateLimit()
+{
+    time_t now = time(NULL);
+
+    if (difftime(now, errorWindowStart) > ERROR_RATE_WINDOW)
+    {
+        errorCounter = 0;
+        errorWindowStart = now;
+    }
+
+    return errorCounter < ERROR_RATE_LIMIT;
+}
+
+private void safeError(const char *msg)
+{
+    if (!checkRateLimit())
+        return;
+
+    errorCounter++;
+    fprintf(stderr, "MOSS: %s\n", msg);
 }

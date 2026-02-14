@@ -4,8 +4,13 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <time.h>
+#include <stdbool.h>
 
 #include "include/builtin.h"
+
+private int error_count = 0;
+private time_t error_window_start = 0;
 
 const struct builtin builtins[] = {
     {"cd", moss_cd},
@@ -17,6 +22,28 @@ const struct builtin builtins[] = {
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
 
+private bool checkRateLimit()
+{
+    time_t now = time(NULL);
+
+    if (difftime(now, error_window_start) > ERROR_RATE_WINDOW)
+    {
+        error_count = 0;
+        error_window_start = now;
+    }
+
+    return error_count < ERROR_RATE_LIMIT;
+}
+
+private void safeError(const char *msg)
+{
+    if (!checkRateLimit())
+        return;
+
+    error_count++;
+    fprintf(stderr, "MOSS: %s\n", msg);
+}
+
 int moss_cd(char **args)
 {
     if (!args[1])
@@ -24,18 +51,26 @@ int moss_cd(char **args)
         char *home = getenv("HOME");
 
         if (!home)
-            fprintf(stderr, "MOSS: cd: home not set.\n");
+            safeError("home directory not set");
         else if (chdir(home) != 0)
-            perror("MOSS");
+            safeError("failed to change to home directory");
 
         return 1;
     }
 
-    if (chdir(args[1]) != 0)
-        perror("MOSS");
+    char resolved[PATH_MAX];
+
+    if (realpath(args[1], resolved) == NULL)
+    {
+        safeError("invalid path");
+        return 1;
+    }
+
+    if (chdir(resolved) != 0)
+        safeError("failed to change directory");
 
     if (args[2])
-        fprintf(stderr, "MOSS: cd: too many arguments.\n");
+        safeError("too many arguments");
 
     return 1;
 }
@@ -74,7 +109,7 @@ int moss_pwd(char **args)
 
     if (!cwd)
     {
-        perror("MOSS: malloc");
+        safeError("memory allocation failed");
         return 1;
     }
 
@@ -83,9 +118,9 @@ int moss_pwd(char **args)
     else
     {
         if (errno == ERANGE)
-            fprintf(stderr, "MOSS: Current directory path is too long.\n");
+            safeError("path too long");
         else
-            perror("MOSS");
+            safeError("failed to get current directory");
     }
 
     free(cwd);
