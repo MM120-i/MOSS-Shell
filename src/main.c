@@ -234,7 +234,8 @@ int moss_execute(char **args)
         if (strcmp(args[0], builtins[i].name) == 0)
             return (*builtins[i].func)(args);
 
-    return moss_launch(args);
+    safeError("command not found");
+    return 1;
 }
 
 private bool isSafe(const char *token)
