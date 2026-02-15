@@ -11,19 +11,23 @@
 #include "include/logging.h"
 #include "include/retry.h"
 
+extern char **environ;
+
 const struct builtin builtins[] = {
     {"cd", moss_cd},
     {"help", moss_help},
     {"exit", moss_exit},
     {"pwd", moss_pwd},
     {"clear", moss_clear},
+    {"echo", moss_echo},
+    {"whoami", moss_whoami},
+    {"env", moss_env},
+    {"export", moss_export},
+    {"unset", moss_unset},
+    {"type", moss_type},
 };
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
-
-typedef struct {
-    const char *path;
-} ChdirContext;
 
 private int doChdir(void *ctx)
 {
@@ -42,19 +46,19 @@ int moss_cd(char **args)
             SAFE_ERROR(ERR_CATEGORY_PATH, "home directory not set");
             return 1;
         }
-        
-        ChdirContext ctx = { .path = home };
+
+        ChdirContext ctx = {.path = home};
         RetryConfig retryConfig = {
             .maxRetries = 3,
             .baseDelayms = 50,
             .maxDelayms = 500,
-            .useExponentialBackoff = true
+            .useExponentialBackoff = true,
         };
+
         RetryContext retryCtx;
         mossRetryInit(&retryCtx, &retryConfig);
-        
         RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
-        
+
         if (result != RETRY_OK)
             SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change to home directory");
 
@@ -69,18 +73,17 @@ int moss_cd(char **args)
         return 1;
     }
 
-    ChdirContext ctx = { .path = resolved };
+    ChdirContext ctx = {.path = resolved};
     RetryConfig retryConfig = {
         .maxRetries = 3,
         .baseDelayms = 50,
         .maxDelayms = 500,
-        .useExponentialBackoff = true
-    };
+        .useExponentialBackoff = true};
     RetryContext retryCtx;
     mossRetryInit(&retryCtx, &retryConfig);
-    
+
     RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
-    
+
     if (result != RETRY_OK)
         SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change directory to %s", resolved);
 
@@ -147,5 +150,108 @@ int moss_clear(char **args)
 {
     (void)args;
     printf("\033[H\033[J");
+    return 1;
+}
+
+int moss_echo(char **args)
+{
+    for (size_t i = 1; args[i] != NULL; i++)
+    {
+        printf("%s", args[i]);
+
+        if (args[i + 1] != NULL)
+            printf(" ");
+    }
+
+    printf("\n");
+    return 1;
+}
+
+int moss_whoami(char **args)
+{
+    (void)args;
+    const char *userName = getenv("USER");
+
+    if (!userName)
+        userName = getenv("USERNAME");
+
+    if (userName)
+        printf("%s\n", userName);
+    else
+        SAFE_ERROR(ERR_CATEGORY_SYSTEM, "Could not find the user");
+
+    return 1;
+}
+
+int moss_env(char **args)
+{
+    (void)args;
+
+    for (char **env = environ; *env != NULL; env++)
+        printf("%s\n", *env);
+
+    return 1;
+}
+
+int moss_export(char **args)
+{
+    if (!args[1])
+    {
+        moss_env(args);
+        return 1;
+    }
+
+    // export PATH=/local/bin:$PATH
+    char *eq = strchr(args[1], '=');
+
+    if (!eq)
+    {
+        SAFE_ERROR(ERR_CATEGORY_INPUT, "Usage: export NAME-VALUE");
+        return 1;
+    }
+
+    *eq = '\0';
+    const char *name = args[1];
+    const char *value = eq + 1;
+
+    // whats setenv()
+    if (setenv(name, value, 1) != 0)
+        SAFE_ERROR(ERR_CATEGORY_SYSTEM, "Failed to set env variable");
+
+    return 1;
+}
+
+int moss_unset(char **args)
+{
+    if (!args[1])
+    {
+        SAFE_ERROR(ERR_CATEGORY_INPUT, "Usage: unset NAME");
+        return 1;
+    }
+
+    if (unsetenv(args[1]) != 0)
+        SAFE_ERROR(ERR_CATEGORY_SYSTEM, "Failed to unset variable");
+
+    return 1;
+}
+
+int moss_type(char **args)
+{
+    if (!args[1])
+    {
+        SAFE_ERROR(ERR_CATEGORY_INPUT, "Usage: type COMMAND");
+        return 1;
+    }
+
+    for (size_t i = 0; i < NUM_BUILTINS; i++)
+    {
+        if (strcmp(args[1], builtins[i].name) == 0)
+        {
+            printf("%s is a shell builtin\n", args[1]);
+            return 1;
+        }
+    }
+
+    printf("%s is an external command\n", args[1]);
     return 1;
 }
