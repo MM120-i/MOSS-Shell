@@ -85,10 +85,20 @@ void mossSafeError(ErrorCategory category, const char *fmt, ...)
     strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
 
     fprintf(stderr, "[%s] [ERROR] [%s] MOSS: ", timeBuf, categoryString[category]);
-
     va_list args;
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
     va_end(args);
     fprintf(stderr, "\n");
+
+    if (logToFile && logOutput)
+    {
+        fprintf(logOutput, "[%s] [ERROR] [%s] MOSS: ", timeBuf, categoryString[category]);
+        va_list args2;
+        va_start(args2, fmt);
+        vfprintf(logOutput, fmt, args2);
+        va_end(args2);
+        fprintf(logOutput, "\n");
+        fflush(logOutput);
+    }
 }

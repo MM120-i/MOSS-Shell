@@ -22,14 +22,19 @@ int main(int argc, char **argv)
     mossLogSetLevel(LOG_LEVEL_DEBUG);
     moss_init_signals();
 
-    // TODO: load config files later
     FILE *logFile = fopen("moss.log", "a");
+
+    if (!logFile)
+    {
+        fprintf(stderr, "Failed to open log file\n");
+        return EXIT_FAILURE;
+    }
+
     mossLogSetFile(logFile);
-
+    LOG_INFO("MOSS Shell starting");
     moss_loop();
-
-    // TODO: do shutdown/cleanup
-    // fclose(logFile);
+    LOG_INFO("MOSS Shell shutting down");
+    fclose(logFile);
 
     return EXIT_SUCCESS;
 }
