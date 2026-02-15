@@ -2,12 +2,15 @@
 #include <stdarg.h>
 #include <time.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "include/logging.h"
 
 private LogLevel currentLevel = LOG_LEVEL_INFO;
 private FILE *logOutput = NULL;
 private bool logToFile = false;
+private int errorCounter = 0;
+private time_t errorWindowStart = 0;
 
 private const char *categoryString[] = {
     "INPUT",
@@ -46,7 +49,7 @@ void mossLog(ErrorCategory category, LogLevel level, const char *fmt, ...)
     char timeBuf[BUF_SIZE];
     strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
     FILE *output = logToFile ? logOutput : stderr;
-    fprintf(output, "[%s] [%s] [%s]", timeBuf, levelString[level], categoryString[category]);
+    fprintf(output, "[%s] [%s] [%s] ", timeBuf, levelString[level], categoryString[category]);
 
     va_list args;
     va_start(args, fmt);
@@ -54,4 +57,38 @@ void mossLog(ErrorCategory category, LogLevel level, const char *fmt, ...)
     va_end(args);
     fprintf(output, "\n");
     fflush(output);
+}
+
+private bool checkRateLimit(void)
+{
+    time_t now = time(NULL);
+
+    if (difftime(now, errorWindowStart) > ERROR_RATE_WINDOW)
+    {
+        errorCounter = 0;
+        errorWindowStart = now;
+    }
+
+    return errorCounter < ERROR_RATE_LIMIT;
+}
+
+void mossSafeError(ErrorCategory category, const char *fmt, ...)
+{
+    if (!checkRateLimit())
+        return;
+
+    errorCounter++;
+
+    time_t now = time(NULL);
+    const struct tm *tmInfo = localtime(&now);
+    char timeBuf[BUF_SIZE];
+    strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
+
+    fprintf(stderr, "[%s] [ERROR] [%s] MOSS: ", timeBuf, categoryString[category]);
+
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    fprintf(stderr, "\n");
 }

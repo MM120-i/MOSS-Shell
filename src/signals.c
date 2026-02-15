@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "include/signals.h"
+#include "include/builtin.h"
 
 volatile sig_atomic_t moss_running = 1;
 volatile sig_atomic_t moss_got_sigint = 0;

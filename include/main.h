@@ -11,14 +11,11 @@
 
 #define private static
 
-private
-bool isSafe(const char *);
-
-private
-bool checkRateLimit();
-
-private
-void safeError(const char *);
+typedef struct
+{
+    char **args;
+    pid_t pid;
+} LaunchContext;
 
 void moss_loop();
 char *moss_read_line();

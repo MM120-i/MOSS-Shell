@@ -8,9 +8,8 @@
 #include <stdbool.h>
 
 #include "include/builtin.h"
-
-private int error_count = 0;
-private time_t error_window_start = 0;
+#include "include/logging.h"
+#include "include/retry.h"
 
 const struct builtin builtins[] = {
     {"cd", moss_cd},
@@ -22,26 +21,14 @@ const struct builtin builtins[] = {
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
 
-private bool checkRateLimit()
+typedef struct {
+    const char *path;
+} ChdirContext;
+
+private int doChdir(void *ctx)
 {
-    time_t now = time(NULL);
-
-    if (difftime(now, error_window_start) > ERROR_RATE_WINDOW)
-    {
-        error_count = 0;
-        error_window_start = now;
-    }
-
-    return error_count < ERROR_RATE_LIMIT;
-}
-
-private void safeError(const char *msg)
-{
-    if (!checkRateLimit())
-        return;
-
-    error_count++;
-    fprintf(stderr, "MOSS: %s\n", msg);
+    ChdirContext *chdirCtx = (ChdirContext *)ctx;
+    return chdir(chdirCtx->path);
 }
 
 int moss_cd(char **args)
@@ -51,9 +38,25 @@ int moss_cd(char **args)
         char *home = getenv("HOME");
 
         if (!home)
-            safeError("home directory not set");
-        else if (chdir(home) != 0)
-            safeError("failed to change to home directory");
+        {
+            SAFE_ERROR(ERR_CATEGORY_PATH, "home directory not set");
+            return 1;
+        }
+        
+        ChdirContext ctx = { .path = home };
+        RetryConfig retryConfig = {
+            .maxRetries = 3,
+            .baseDelayms = 50,
+            .maxDelayms = 500,
+            .useExponentialBackoff = true
+        };
+        RetryContext retryCtx;
+        mossRetryInit(&retryCtx, &retryConfig);
+        
+        RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
+        
+        if (result != RETRY_OK)
+            SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change to home directory");
 
         return 1;
     }
@@ -62,15 +65,27 @@ int moss_cd(char **args)
 
     if (realpath(args[1], resolved) == NULL)
     {
-        safeError("invalid path");
+        SAFE_ERROR(ERR_CATEGORY_PATH, "invalid path: %s", args[1]);
         return 1;
     }
 
-    if (chdir(resolved) != 0)
-        safeError("failed to change directory");
+    ChdirContext ctx = { .path = resolved };
+    RetryConfig retryConfig = {
+        .maxRetries = 3,
+        .baseDelayms = 50,
+        .maxDelayms = 500,
+        .useExponentialBackoff = true
+    };
+    RetryContext retryCtx;
+    mossRetryInit(&retryCtx, &retryConfig);
+    
+    RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
+    
+    if (result != RETRY_OK)
+        SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change directory to %s", resolved);
 
     if (args[2])
-        safeError("too many arguments");
+        SAFE_ERROR(ERR_CATEGORY_INPUT, "cd: too many arguments");
 
     return 1;
 }
@@ -109,7 +124,7 @@ int moss_pwd(char **args)
 
     if (!cwd)
     {
-        safeError("memory allocation failed");
+        SAFE_ERROR(ERR_CATEGORY_MEMORY, "memory allocation failed");
         return 1;
     }
 
@@ -118,9 +133,9 @@ int moss_pwd(char **args)
     else
     {
         if (errno == ERANGE)
-            safeError("path too long");
+            SAFE_ERROR(ERR_CATEGORY_PATH, "path too long");
         else
-            safeError("failed to get current directory");
+            SAFE_ERROR(ERR_CATEGORY_PATH, "failed to get current directory");
     }
 
     free(cwd);

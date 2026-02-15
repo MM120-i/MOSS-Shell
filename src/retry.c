@@ -5,7 +5,7 @@
 
 #include "include/retry.h"
 
-private int calculateDelay(RetryContext *ctx)
+int calculateDelay(RetryContext *ctx)
 {
     int delay = ctx->config.baseDelayms;
 
@@ -30,6 +30,21 @@ const char *mossRetryResult(RetryResult result)
         return "Non-retryable error";
     default:
         return "Unknown error";
+    }
+}
+
+bool mossRetryShouldRetry(int errnoValue)
+{
+    switch (errnoValue)
+    {
+    case EAGAIN:
+    case EINTR:
+    case ENOMEM:
+    case EMFILE:
+    case ENFILE:
+        return true;
+    default:
+        return false;
     }
 }
 
