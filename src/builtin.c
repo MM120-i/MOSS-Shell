@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <time.h>
 #include <stdbool.h>
+#include <pwd.h>
 
 #include "include/builtin.h"
 #include "include/logging.h"
@@ -28,6 +29,7 @@ const struct builtin builtins[] = {
 };
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
+private char *moss_oldpwd = NULL;
 
 private int doChdir(void *ctx)
 {
@@ -35,41 +37,131 @@ private int doChdir(void *ctx)
     return chdir(chdirCtx->path);
 }
 
-int moss_cd(char **args)
+/**
+ * "-" -> OLDPWD
+ * "~" -> HOME
+ * "~/..." -> HOME + "/..."
+ * "~User" -> getpwnam()
+ */
+private char *expand_path(const char *path)
 {
-    if (!args[1])
+    if (strcmp(path, "-") == 0)
     {
-        char *home = getenv("HOME");
-
-        if (!home)
+        if (!moss_oldpwd)
         {
-            SAFE_ERROR(ERR_CATEGORY_PATH, "home directory not set");
-            return 1;
+            SAFE_ERROR(ERR_CATEGORY_PATH, "No prev directory");
+            return NULL;
         }
 
-        ChdirContext ctx = {.path = home};
-        RetryConfig retryConfig = {
-            .maxRetries = 3,
-            .baseDelayms = 50,
-            .maxDelayms = 500,
-            .useExponentialBackoff = true,
-        };
+        return strdup(moss_oldpwd);
+    }
 
-        RetryContext retryCtx;
-        mossRetryInit(&retryCtx, &retryConfig);
-        RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
+    if (path[0] == '~')
+    {
+        switch (path[1])
+        {
+        case '\0':
+        {
+            char *home = getenv("HOME");
 
-        if (result != RETRY_OK)
-            SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change to home directory");
+            if (!home)
+            {
+                SAFE_ERROR(ERR_CATEGORY_PATH, "Home directory not set");
+                return NULL;
+            }
 
+            return strdup(home);
+        }
+        case '/':
+        {
+            char *home = getenv("HOME");
+
+            if (!home)
+            {
+                SAFE_ERROR(ERR_CATEGORY_PATH, "Home directory not set");
+                return NULL;
+            }
+
+            // total length: home + rest of the path + null terminator
+            size_t totalLength = strlen(home) + strlen(path + 1) + 1;
+            char *expanded = (char *)malloc(totalLength);
+
+            if (!expanded)
+            {
+                SAFE_ERROR(ERR_CATEGORY_MEMORY, "Alloc failed");
+                return NULL;
+            }
+
+            // full path: home + rest of the path
+            strcpy(expanded, home);
+            strcat(expanded, path + 1);
+
+            return expanded;
+        }
+
+        default:
+        {
+            const char *userName = path + 1;
+            struct passwd *pw = getpwnam(userName);
+
+            if (!pw)
+            {
+                SAFE_ERROR(ERR_CATEGORY_PATH, "Unknown user: %s", userName);
+                return NULL;
+            }
+
+            return strdup(pw->pw_dir);
+        }
+        }
+    }
+
+    return strdup(path);
+}
+
+int moss_cd(char **args)
+{
+    char *targetPath = NULL;
+    char *expandedPath = NULL;
+    char currentDir[PATH_MAX];
+
+    if (getcwd(currentDir, sizeof(currentDir)) == NULL)
+    {
+        SAFE_ERROR(ERR_CATEGORY_PATH, "Failed to get current directory");
         return 1;
     }
 
+    // determine the target path
+    if (!args[1])
+    {
+        targetPath = getenv("HOME");
+
+        if (!targetPath)
+        {
+            SAFE_ERROR(ERR_CATEGORY_PATH, "Home directory is not set");
+            return 1;
+        }
+
+        targetPath = strdup(targetPath);
+    }
+    else
+    {
+        expandedPath = expand_path(args[1]);
+
+        if (!expandedPath)
+            return 1;
+
+        targetPath = expandedPath;
+    }
+
+    if (strcmp(args[1], "-") == 0)
+        printf("%s\n", targetPath);
+
     char resolved[PATH_MAX];
 
-    if (realpath(args[1], resolved) == NULL)
+    if (realpath(targetPath, resolved) == NULL)
     {
-        SAFE_ERROR(ERR_CATEGORY_PATH, "invalid path: %s", args[1]);
+        SAFE_ERROR(ERR_CATEGORY_PATH, "invalid path: %s", targetPath);
+        free(targetPath);
         return 1;
     }
 
@@ -78,14 +170,28 @@ int moss_cd(char **args)
         .maxRetries = 3,
         .baseDelayms = 50,
         .maxDelayms = 500,
-        .useExponentialBackoff = true};
+        .useExponentialBackoff = true,
+    };
+
     RetryContext retryCtx;
     mossRetryInit(&retryCtx, &retryConfig);
-
     RetryResult result = mossRetryExecute(&retryCtx, doChdir, &ctx, mossRetryShouldRetry);
 
     if (result != RETRY_OK)
+    {
         SAFE_ERROR(ERR_CATEGORY_PATH, "failed to change directory to %s", resolved);
+        free(targetPath);
+        return 1;
+    }
+
+    // on success, we update oldpwd
+    if (moss_oldpwd)
+        free(moss_oldpwd);
+
+    moss_oldpwd = strdup(currentDir);
+    setenv("OLDPWD", currentDir, 1);
+    setenv("PWD", resolved, 1);
+    free(targetPath);
 
     if (args[2])
         SAFE_ERROR(ERR_CATEGORY_INPUT, "cd: too many arguments");
@@ -101,8 +207,6 @@ int moss_help(char **args)
 
     for (size_t i = 0; i < NUM_BUILTINS; i++)
         printf("  %s\n", builtins[i].name);
-
-    printf("Use the 'man' command for more information on other programs.\n");
 
     return 1;
 }

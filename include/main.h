@@ -1,11 +1,12 @@
 #pragma once
 
 #include <stdbool.h>
+#include <unistd.h>
 
 #define TOK_INITIAL_BUFFER 64
 #define TOK_MAX_TOKEN_LEN 4096
 #define TOK_DELIMETER " \t\r\n\a"
-#define DANGEROUS_CHARS ";|&$`\\\"'<>{}[]()!*?#~"
+#define DANGEROUS_CHARS ";|&$`\\\"'<>{}[]()!*?#"
 #define ERROR_RATE_LIMIT 5
 #define ERROR_RATE_WINDOW 60
 

@@ -27,7 +27,6 @@ int moss_help(char **);
 int moss_exit(char **);
 int moss_pwd(char **);
 int moss_clear(char **);
-
 int moss_echo(char **);
 int moss_whoami(char **);
 int moss_env(char **);
