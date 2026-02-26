@@ -37,12 +37,32 @@ private int doChdir(void *ctx)
     return chdir(chdirCtx->path);
 }
 
-/**
- * "-" -> OLDPWD
- * "~" -> HOME
- * "~/..." -> HOME + "/..."
- * "~User" -> getpwnam()
- */
+char *strip_comments(char *line)
+{
+    if (!line)
+        return NULL;
+
+    bool singleQuotes = false, doubleQuotes = false;
+
+    for (size_t i = 0; line[i] != '\0'; i++)
+    {
+        const char ch = line[i];
+
+        if (ch == '"' && !singleQuotes)
+            doubleQuotes = !doubleQuotes;
+        else if (ch == '\'' && !doubleQuotes)
+            singleQuotes = !singleQuotes;
+        else if (ch == '#' && !singleQuotes && !doubleQuotes)
+        {
+            line[i] = '\0';
+            break;
+        }
+    }
+
+    return line;
+}
+
+// caller must free memory tho 🥀
 private char *expand_path(const char *path)
 {
     if (strcmp(path, "-") == 0)
@@ -130,7 +150,6 @@ int moss_cd(char **args)
         return 1;
     }
 
-    // determine the target path
     if (!args[1])
     {
         targetPath = getenv("HOME");
@@ -184,7 +203,6 @@ int moss_cd(char **args)
         return 1;
     }
 
-    // on success, we update oldpwd
     if (moss_oldpwd)
         free(moss_oldpwd);
 
@@ -305,7 +323,6 @@ int moss_export(char **args)
         return 1;
     }
 
-    // export PATH=/local/bin:$PATH
     char *eq = strchr(args[1], '=');
 
     if (!eq)
@@ -318,7 +335,6 @@ int moss_export(char **args)
     const char *name = args[1];
     const char *value = eq + 1;
 
-    // whats setenv()
     if (setenv(name, value, 1) != 0)
         SAFE_ERROR(ERR_CATEGORY_SYSTEM, "Failed to set env variable");
 

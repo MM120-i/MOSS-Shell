@@ -23,3 +23,5 @@ Thumbs.db
 # Ignore core dumps
 core
 *.core
+
+*.md

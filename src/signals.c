@@ -14,7 +14,6 @@ volatile sig_atomic_t moss_running = 1;
 volatile sig_atomic_t moss_got_sigint = 0;
 pid_t moss_foreground_pgid; // gets group id of foreground processes
 
-// when ctrl + C (^C) is pressed
 private void sigint_handler(int signo)
 {
     (void)signo;

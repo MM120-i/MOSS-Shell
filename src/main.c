@@ -17,7 +17,7 @@
 private bool isSafe(const char *);
 private int doFork(void *);
 
-int main()
+int main(int argc, char **argv)
 {
     mossLogSetLevel(LOG_LEVEL_DEBUG);
     moss_init_signals();
@@ -191,8 +191,7 @@ int moss_launch(char **args)
         .maxRetries = 3,
         .baseDelayms = 100,
         .maxDelayms = 1000,
-        .useExponentialBackoff = true,
-    };
+        .useExponentialBackoff = true};
 
     RetryContext retryCtx;
     mossRetryInit(&retryCtx, &retryConfig);
