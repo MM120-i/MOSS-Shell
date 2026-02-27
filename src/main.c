@@ -16,6 +16,7 @@
 
 private bool isSafe(const char *);
 private int doFork(void *);
+private char *strip_quotes(char *token);
 
 int main(int argc, char **argv)
 {
@@ -56,6 +57,22 @@ void moss_loop()
         printf("> ");
         line = moss_read_line();
         args = moss_split_line(line);
+
+        if (args)
+        {
+            for (size_t i = 0; args[i] != NULL; i++)
+            {
+                char *stripped = strip_quotes(args[i]);
+                char *expanded = expandEnvVar(stripped);
+
+                if (expanded)
+                {
+                    free(args[i]);
+                    args[i] = expanded;
+                }
+            }
+        }
+
         status = moss_execute(args);
 
         free(line);
@@ -146,7 +163,7 @@ char **moss_split_line(char *line)
             bufferSize = newSize;
         }
 
-        tokens[position++] = token;
+        tokens[position++] = strdup(token);
         token = strtok_r(NULL, TOK_DELIMETER, &savePtr);
     }
 
@@ -166,6 +183,7 @@ char **moss_split_line(char *line)
     }
 
     tokens[position] = NULL;
+
     return tokens;
 }
 
@@ -259,6 +277,7 @@ int moss_execute(char **args)
             return (*builtins[i].func)(args);
 
     SAFE_ERROR(ERR_CATEGORY_EXEC, "command not found: %s", args[0]);
+
     return 1;
 }
 
@@ -268,4 +287,23 @@ private bool isSafe(const char *token)
         return 0;
 
     return strcspn(token, DANGEROUS_CHARS) == strlen(token);
+}
+
+private char *strip_quotes(char *token)
+{
+    if (!token)
+        return NULL;
+
+    size_t len = strlen(token);
+
+    if (len < 2)
+        return token;
+
+    if ((token[0] == '"' && token[len - 1] == '"') || (token[0] == '\'' && token[len - 1] == '\''))
+    {
+        token[len - 1] = '\0';
+        return token + 1;
+    }
+
+    return token;
 }

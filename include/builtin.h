@@ -32,4 +32,4 @@ int moss_env(char **);
 int moss_export(char **);
 int moss_unset(char **);
 int moss_type(char **);
-char *strip_comments(char *);
+char *expandEnvVar(const char *);

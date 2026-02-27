@@ -30,36 +30,17 @@ const struct builtin builtins[] = {
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
 private char *moss_oldpwd = NULL;
+private bool isEnvVarChar(char);
+
+private bool isEnvVarChar(char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+}
 
 private int doChdir(void *ctx)
 {
     ChdirContext *chdirCtx = (ChdirContext *)ctx;
     return chdir(chdirCtx->path);
-}
-
-char *strip_comments(char *line)
-{
-    if (!line)
-        return NULL;
-
-    bool singleQuotes = false, doubleQuotes = false;
-
-    for (size_t i = 0; line[i] != '\0'; i++)
-    {
-        const char ch = line[i];
-
-        if (ch == '"' && !singleQuotes)
-            doubleQuotes = !doubleQuotes;
-        else if (ch == '\'' && !doubleQuotes)
-            singleQuotes = !singleQuotes;
-        else if (ch == '#' && !singleQuotes && !doubleQuotes)
-        {
-            line[i] = '\0';
-            break;
-        }
-    }
-
-    return line;
 }
 
 // caller must free memory tho 🥀
@@ -136,6 +117,189 @@ private char *expand_path(const char *path)
     }
 
     return strdup(path);
+}
+
+char *expandEnvVar(const char *token)
+{
+    if (!token)
+    {
+        SAFE_ERROR(ERR_CATEGORY_INPUT, "MOSS: Input is empty");
+        return NULL;
+    }
+
+    if (strchr(token, '$') == NULL)
+        return strdup(token);
+
+    size_t resultSize = 64;
+    char *result = (char *)malloc(resultSize);
+
+    if (!result)
+    {
+        SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed");
+        return NULL;
+    }
+
+    result[0] = '\0';
+    const size_t len = strlen(token);
+    size_t resultPosition = 0;
+
+    for (size_t i = 0; i < len; i++)
+    {
+        if (token[i] != '$')
+        {
+            result[resultPosition++] = token[i];
+            result[resultPosition] = '\0';
+        }
+        else
+        {
+            if (i + 1 >= len)
+            {
+                result[resultPosition++] = '$';
+                result[resultPosition] = '\0';
+            }
+            else if (token[i + 1] == '$')
+            {
+                char pidStr[32];
+                snprintf(pidStr, sizeof(pidStr), "%d", getpid());
+                size_t pidLen = strlen(pidStr);
+
+                while (resultPosition + pidLen + 1 > resultSize)
+                {
+                    resultSize *= 2;
+                    char *newResult = realloc(result, resultSize);
+
+                    if (!newResult)
+                    {
+                        free(result);
+                        SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed for");
+                        return NULL;
+                    }
+
+                    result = newResult;
+                }
+
+                strcat(result, pidStr);
+                resultPosition += pidLen;
+                i++;
+            }
+            else if (token[i + 1] == '{')
+            {
+                size_t start = i + 2;
+                size_t end = start;
+
+                while (end < len && token[end] != '}')
+                    end++;
+
+                if (end == len)
+                {
+                    // No closing brace - keep ${ as literal
+                    result[resultPosition++] = '$';
+                    result[resultPosition++] = '{';
+                    result[resultPosition] = '\0';
+                    i = len - 1; // Move to end so loop exits properly
+                }
+                else
+                {
+                    const size_t varLen = end - start;
+                    char *varName = (char *)malloc(varLen + 1);
+
+                    if (!varName)
+                    {
+                        free(result);
+                        SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed");
+                        return NULL;
+                    }
+
+                    strncpy(varName, token + start, varLen);
+                    varName[varLen] = '\0';
+                    char *value = getenv(varName);
+
+                    if (value)
+                    {
+                        const size_t valLen = strlen(value);
+
+                        while (resultPosition + valLen + 1 > resultSize)
+                        {
+                            resultSize *= 2;
+                            char *newResult = realloc(result, resultSize);
+
+                            if (!newResult)
+                            {
+                                free(result);
+                                free(varName);
+                                SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed");
+                                return NULL;
+                            }
+
+                            result = newResult;
+                        }
+
+                        strcat(result, value);
+                        resultPosition += valLen;
+                    }
+
+                    free(varName);
+                    i = end;
+                }
+            }
+            else if (!isEnvVarChar(token[i + 1]))
+            {
+                result[resultPosition++] = '$';
+                result[resultPosition] = '\0';
+            }
+            else
+            {
+                size_t start = i + 1;
+                size_t end = start;
+
+                while (end < len && isEnvVarChar(token[end]))
+                    end++;
+
+                const size_t varLen = end - start;
+                char *varName = (char *)malloc(varLen + 1);
+
+                if (!varName)
+                {
+                    free(result);
+                    SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed");
+                    return NULL;
+                }
+
+                strncpy(varName, token + start, varLen);
+                varName[varLen] = '\0';
+                char *value = getenv(varName);
+
+                if (value)
+                {
+                    const size_t valLen = strlen(value);
+
+                    while (resultPosition + valLen + 1 > resultSize)
+                    {
+                        resultSize *= 2;
+                        char *newResult = realloc(result, resultSize);
+
+                        if (!newResult)
+                        {
+                            free(result);
+                            free(varName);
+                            SAFE_ERROR(ERR_CATEGORY_MEMORY, "MOSS: Memory allocation failed");
+                            return NULL;
+                        }
+
+                        result = newResult;
+                    }
+
+                    strcat(result, value);
+                    resultPosition += valLen;
+                }
+
+                free(varName);
+                i = end - 1;
+            }
+        }
+    }
+
+    return result;
 }
 
 int moss_cd(char **args)
