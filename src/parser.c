@@ -308,4 +308,27 @@ char **moss_split_line(char *line)
     return tokens;
 }
 
-// strip_comment()
+char *strip_comment(char *line)
+{
+    if (!line)
+        return NULL;
+
+    bool singleQuote = false, doubleQuote = false;
+
+    for (size_t i = 0; line[i] != '\0'; i++)
+    {
+        const char c = line[i];
+
+        if (c == '\'' && !doubleQuote)
+            singleQuote = !singleQuote;
+        else if (c == '"' && !singleQuote)
+            doubleQuote = !doubleQuote;
+        else if (c == '#' && !singleQuote && !doubleQuote)
+        {
+            line[i] = '\0';
+            break;
+        }
+    }
+
+    return line;
+}

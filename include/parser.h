@@ -8,4 +8,4 @@ char **moss_split_line(char *);
 bool isSafe(const char *);
 char *strip_quotes(char *);
 char *expandEnvVar(const char *);
-// strip_comment()
+char *strip_comment(char *);

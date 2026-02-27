@@ -55,7 +55,21 @@ void moss_loop()
     {
         printf("> ");
         line = moss_read_line();
+        strip_comment(line);
+
+        if (line[0] == '\0')
+        {
+            free(line);
+            continue;
+        }
+
         args = moss_split_line(line);
+
+        if (!args)
+        {
+            free(line);
+            continue;
+        }
 
         if (args)
         {
