@@ -5,7 +5,7 @@
 
 #include "include/retry.h"
 
-int calculateDelay(RetryContext *ctx)
+private int calculateDelay(RetryContext *ctx)
 {
     int delay = ctx->config.baseDelayms;
 
@@ -16,21 +16,6 @@ int calculateDelay(RetryContext *ctx)
         delay = ctx->config.maxDelayms;
 
     return delay;
-}
-
-const char *mossRetryResult(RetryResult result)
-{
-    switch (result)
-    {
-    case RETRY_OK:
-        return "Success";
-    case RETRY_EXHAUSTED:
-        return "Max retries exceeded :(";
-    case RETRY_NON_RETRYABLE:
-        return "Non-retryable error";
-    default:
-        return "Unknown error";
-    }
 }
 
 bool mossRetryShouldRetry(int errnoValue)
