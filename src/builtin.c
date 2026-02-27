@@ -192,11 +192,10 @@ char *expandEnvVar(const char *token)
 
                 if (end == len)
                 {
-                    // No closing brace - keep ${ as literal
                     result[resultPosition++] = '$';
                     result[resultPosition++] = '{';
                     result[resultPosition] = '\0';
-                    i = len - 1; // Move to end so loop exits properly
+                    i = len - 1;
                 }
                 else
                 {
