@@ -39,12 +39,6 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
-/**
- * we r gonna be reading, parsing, and executing
- * read: read the command from stdin
- * parsing: spearate the command string into program arguments
- * execute: run the parsed command
- */
 void moss_loop()
 {
     char *line;
