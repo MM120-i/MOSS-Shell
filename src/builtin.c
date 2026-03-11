@@ -530,6 +530,7 @@ int moss_ls(char **args)
         {
             struct stat st;
             char fullPath[PATH_MAX];
+
             if (strcmp(dirPath, ".") == 0)
                 snprintf(fullPath, sizeof(fullPath), "%s", entries[i]);
             else

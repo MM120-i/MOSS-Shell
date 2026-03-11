@@ -14,8 +14,7 @@
 #include "include/logging.h"
 #include "include/retry.h"
 #include "include/parser.h"
-
-private int doFork(void *);
+#include "include/pipeline.h"
 
 int main(int argc, char **argv)
 {
@@ -107,99 +106,4 @@ char *moss_read_line()
     }
 
     return line;
-}
-
-private int doFork(void *ctx)
-{
-    LaunchContext *launch = (LaunchContext *)ctx;
-    launch->pid = fork();
-
-    return (launch->pid < 0) ? -1 : 0;
-}
-
-int moss_launch(char **args)
-{
-    if (!args || !args[0])
-    {
-        SAFE_ERROR(ERR_CATEGORY_EXEC, "invalid arguments");
-        return 0;
-    }
-
-    LaunchContext ctx = {.args = args, .pid = -1};
-
-    RetryConfig retryConfig = {
-        .maxRetries = 3,
-        .baseDelayms = 100,
-        .maxDelayms = 1000,
-        .useExponentialBackoff = true,
-    };
-
-    RetryContext retryCtx;
-    mossRetryInit(&retryCtx, &retryConfig);
-    RetryResult result = mossRetryExecute(&retryCtx, doFork, &ctx, mossRetryShouldRetry);
-
-    if (result != RETRY_OK)
-    {
-        SAFE_ERROR(ERR_CATEGORY_EXEC, "failed to fork process after %d attempts", retryCtx.attemptCount);
-        return 0;
-    }
-
-    pid_t pid = ctx.pid;
-    int status = 0;
-
-    if (pid == 0)
-    {
-        if (setpgid(0, 0) == -1)
-            _exit(126);
-
-        if (execvp(args[0], args) == -1)
-            _exit(126);
-    }
-
-    if (setpgid(pid, pid) == -1)
-        if (errno != EACCES && errno != EINVAL && errno != ESRCH)
-            SAFE_ERROR(ERR_CATEGORY_SYSTEM, "failed to set process group");
-
-    moss_foreground_pgid = pid;
-
-    while (true)
-    {
-        pid_t w = waitpid(pid, &status, WUNTRACED);
-
-        if (w == -1)
-        {
-            if (errno == EINTR)
-                continue;
-
-            SAFE_ERROR(ERR_CATEGORY_SYSTEM, "error waiting for process");
-            break;
-        }
-
-        if (WIFEXITED(status))
-            break;
-
-        if (WIFSIGNALED(status))
-            break;
-
-        if (WIFSTOPPED(status))
-            break;
-    }
-
-    moss_foreground_pgid = 0;
-
-    return 1;
-}
-
-int moss_execute(char **args)
-{
-    if (!args[0])
-        return 1;
-
-    for (size_t i = 0; i < NUM_BUILTINS; i++)
-        if (strcmp(args[0], builtins[i].name) == 0)
-            return (*builtins[i].func)(args);
-
-    SAFE_ERROR(ERR_CATEGORY_EXEC, "command not found: %s", args[0]);
-
-    return 1;
 }
