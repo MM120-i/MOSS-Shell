@@ -65,7 +65,6 @@ int moss_execute_pipeline(char **args)
     int cmdIdx = 0, argIdx = 0;
     commands[cmdIdx] = malloc(64 * sizeof(char *));
 
-    // explain
     for (size_t i = 0; args[i]; i++)
     {
         if (strcmp(args[i], "|") == 0)
