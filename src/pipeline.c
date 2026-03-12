@@ -181,12 +181,6 @@ int moss_execute_pipeline(char **args)
     return 1;
 }
 
-// TODO
-int moss_execute_command_list(char **args)
-{
-    return 1;
-}
-
 int moss_launch(char **args)
 {
     if (!args || !args[0])
