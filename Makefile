@@ -1,10 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -I.
-SRC = $(wildcard src/*.c)
+CFLAGS = -Wall -I. -Iinclude
+SRC = $(wildcard src/*.c) $(wildcard src/**/*.c)
 OUT = shell
 
 TEST_SRC = $(wildcard tests/*.c)
 TEST_BINS = $(TEST_SRC:.c=)
+TEST_LIBS = $(filter-out src/main.c, $(SRC))
 
 all: $(OUT) test
 
@@ -19,7 +20,7 @@ test: $(TEST_BINS)
 	done
 
 $(TEST_BINS): $(TEST_SRC)
-	$(CC) $(CFLAGS) $< -o $@ -lcmocka
+	$(CC) $(CFLAGS) $< $(TEST_LIBS) -o $@ -lcmocka
 
 .PHONY: all test clean
 

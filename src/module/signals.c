@@ -14,15 +14,6 @@ volatile sig_atomic_t moss_running = 1;
 volatile sig_atomic_t moss_got_sigint = 0;
 pid_t moss_foreground_pgid; // gets group id of foreground processes
 
-private void sigint_handler(int signo)
-{
-    (void)signo;
-    moss_got_sigint = 1;
-
-    if (moss_foreground_pgid > 0)
-        kill(-moss_foreground_pgid, SIGINT);
-}
-
 // request clean shutdown
 private void sigterm_handler(int signo)
 {
@@ -48,7 +39,16 @@ private void sigchld_handler(int signo)
     errno = savedErrno;
 }
 
-private int install_handler(int signum, void (*handler)(int), const int flags)
+void sigint_handler(int signo)
+{
+    (void)signo;
+    moss_got_sigint = 1;
+
+    if (moss_foreground_pgid > 0)
+        kill(-moss_foreground_pgid, SIGINT);
+}
+
+int install_handler(int signum, void (*handler)(int), const int flags)
 {
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));

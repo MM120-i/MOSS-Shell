@@ -10,3 +10,5 @@ extern volatile sig_atomic_t moss_got_sigint;
 extern pid_t moss_foreground_pgid; // gets group id of foreground processes
 
 void moss_init_signals();
+int install_handler(int, void (*)(int), const int);
+void sigint_handler(int);
