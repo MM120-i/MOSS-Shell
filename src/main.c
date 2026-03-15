@@ -16,6 +16,11 @@
 #include "include/parser.h"
 #include "include/pipeline.h"
 
+/**
+ * TODO: Add auto completion feature
+ * TODO: Add gui
+ * TODO: AI voice command
+ */
 int main(int argc, char **argv)
 {
     mossLogSetLevel(LOG_LEVEL_DEBUG);
