@@ -2,9 +2,10 @@
 
 #include <stdbool.h>
 
-#define SIZE 4096
-#define ERROR_RATE_LIMIT 5
-#define ERROR_RATE_WINDOW 60
+typedef struct
+{
+    const char *path;
+} ChdirContext;
 
 struct builtin
 {
@@ -12,13 +13,7 @@ struct builtin
     int (*func)(char **);
 };
 
-typedef struct
-{
-    const char *path;
-} ChdirContext;
-
 extern const struct builtin builtins[];
-extern int builtins_count;
 extern const int NUM_BUILTINS;
 
 int moss_cd(char **);

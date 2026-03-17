@@ -9,18 +9,13 @@
 #include <stdbool.h>
 
 #include "include/main.h"
-#include "include/builtin.h"
+#include "src/modules/builtins/builtin.h"
 #include "include/signals.h"
 #include "include/logging.h"
 #include "include/retry.h"
 #include "include/parser.h"
 #include "include/pipeline.h"
 
-/**
- * TODO: Add auto completion feature
- * TODO: Add gui
- * TODO: AI voice command
- */
 int main(int argc, char **argv)
 {
     mossLogSetLevel(LOG_LEVEL_DEBUG);

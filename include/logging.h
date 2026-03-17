@@ -39,12 +39,10 @@ typedef struct
 void mossLogSetLevel(LogLevel);
 void mossLogSetFile(FILE *);
 void mossLog(ErrorCategory, LogLevel, const char *, ...);
-
 void mossSafeError(ErrorCategory, const char *fmt, ...);
 
 #define LOG_DEBUG(fmt, ...) mossLog(ERR_CATEGORY_SYSTEM, LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #define LOG_INFO(fmt, ...) mossLog(ERR_CATEGORY_SYSTEM, LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
 #define LOG_WARN(fmt, ...) mossLog(ERR_CATEGORY_SYSTEM, LOG_LEVEL_WARN, fmt, ##__VA_ARGS__)
 #define LOG_ERROR(fmt, ...) mossLog(ERR_CATEGORY_SYSTEM, LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
-
 #define SAFE_ERROR(category, fmt, ...) mossSafeError(category, fmt, ##__VA_ARGS__)

@@ -8,7 +8,7 @@
 #include <errno.h>
 
 #include "include/main.h"
-#include "include/builtin.h"
+#include "src/modules/builtins/builtin.h"
 #include "include/logging.h"
 #include "include/retry.h"
 #include "include/signals.h"
@@ -217,7 +217,10 @@ int moss_launch(char **args)
             _exit(126);
 
         if (execvp(args[0], args) == -1)
+        {
+            SAFE_ERROR(ERR_CATEGORY_EXEC, "Command not found: %s", args[0]);
             _exit(126);
+        }
     }
 
     if (setpgid(pid, pid) == -1)
