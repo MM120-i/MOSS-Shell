@@ -46,6 +46,15 @@ This optional layer will allow users to:
 
 The design keeps the AI system **outside** the core shell.
 
+## Tech Stack
+| Category                | Technology |
+|---------------------|-------|
+| Language | C (POSIX Compliant) |
+| Complier | GCC |
+| Build System    | Makefile |
+| Testing             | cmocka |
+| Platform | Unix/Posix (Linux, macOS, Cygwin)|
+| Planned GUI | Qt (C++) |
 ---
 
 ## **Quick Start**
