@@ -24,7 +24,7 @@ The goal is simple: a shell that understands what you meant, not just what you t
 - **Built‑in commands** (`cd`, `exit`, `export`, and more)
 - **Retry system** for resilient operations
 
-### **Graphical User Interface (Qt)**
+### **Graphical User Interface (Qt)** (Upcoming)
 
 MOSS includes an optional **GUI terminal built with Qt (C++)**, offering a polished, modern interface on top of the shell engine.
 
