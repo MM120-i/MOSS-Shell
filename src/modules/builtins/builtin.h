@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+#define private static
+
 typedef struct
 {
     const char *path;

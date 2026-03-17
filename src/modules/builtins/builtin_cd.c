@@ -10,15 +10,15 @@
 #include "logging.h"
 #include "retry.h"
 
-static char *moss_oldpwd = NULL;
+private char *moss_oldpwd = NULL;
 
-static int doChdir(void *ctx)
+private int doChdir(void *ctx)
 {
     ChdirContext *chdirCtx = (ChdirContext *)ctx;
     return chdir(chdirCtx->path);
 }
 
-static char *expand_path(const char *path)
+private char *expand_path(const char *path)
 {
     if (strcmp(path, "-") == 0)
     {

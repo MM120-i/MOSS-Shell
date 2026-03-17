@@ -3,9 +3,11 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+#define private static
+
 #include "include/signals.h"
 
-static int setup(void **state)
+private int setup(void **state)
 {
     (void)state;
     moss_running = 1;
@@ -16,7 +18,7 @@ static int setup(void **state)
 }
 
 // test 1: check gloabal variables start with correct values
-static void testGlobalsInit(void **state)
+private void testGlobalsInit(void **state)
 {
     (void)state;
     assert_int_equal(moss_running, 1);
@@ -25,20 +27,20 @@ static void testGlobalsInit(void **state)
 }
 
 // test 2: setting moss_foreground_pgid presists
-static void testForegroundPgid(void **state)
+private void testForegroundPgid(void **state)
 {
     (void)state;
     moss_foreground_pgid = 12345;
     assert_int_equal(moss_foreground_pgid, 12345);
 }
 
-static void myHandler(int sig)
+private void myHandler(int sig)
 {
     (void)sig;
 }
 
 // test 3: install_handler returns 0 on success
-static void testInstallHandler(void **state)
+private void testInstallHandler(void **state)
 {
     (void)state;
     const int result = install_handler(SIGTERM, myHandler, 0);
@@ -46,7 +48,7 @@ static void testInstallHandler(void **state)
 }
 
 // test 4: moss_init_signals runs without crashing
-static void testInitSignals(void **state)
+private void testInitSignals(void **state)
 {
     (void)state;
     moss_init_signals();

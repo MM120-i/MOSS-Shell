@@ -13,7 +13,7 @@
 #include "builtin.h"
 #include "logging.h"
 
-static void strmode(mode_t mode, char *buf)
+private void strmode(mode_t mode, char *buf)
 {
 
     buf[0] = S_ISDIR(mode) ? 'd' : S_ISLNK(mode) ? 'l'
@@ -30,7 +30,7 @@ static void strmode(mode_t mode, char *buf)
     buf[10] = '\0';
 }
 
-static int compareStrings(const void *a, const void *b)
+private int compareStrings(const void *a, const void *b)
 {
     const char *strA = *(const char **)a;
     const char *strB = *(const char **)b;
@@ -38,7 +38,7 @@ static int compareStrings(const void *a, const void *b)
     return strcmp(strA, strB);
 }
 
-static char *expand_ls_path(const char *path)
+private char *expand_ls_path(const char *path)
 {
     if (path[0] != '~')
         return NULL;
