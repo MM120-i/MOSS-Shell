@@ -3,8 +3,6 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#define private static
-
 #include "include/signals.h"
 
 private int setup(void **state)
@@ -18,7 +16,7 @@ private int setup(void **state)
 }
 
 // test 1: check gloabal variables start with correct values
-private void testGlobalsInit(void **state)
+private void test_GlobalsInit(void **state)
 {
     (void)state;
     assert_int_equal(moss_running, 1);
@@ -27,7 +25,7 @@ private void testGlobalsInit(void **state)
 }
 
 // test 2: setting moss_foreground_pgid presists
-private void testForegroundPgid(void **state)
+private void test_ForegroundPgid(void **state)
 {
     (void)state;
     moss_foreground_pgid = 12345;
@@ -40,7 +38,7 @@ private void myHandler(int sig)
 }
 
 // test 3: install_handler returns 0 on success
-private void testInstallHandler(void **state)
+private void test_InstallHandler(void **state)
 {
     (void)state;
     const int result = install_handler(SIGTERM, myHandler, 0);
@@ -48,7 +46,7 @@ private void testInstallHandler(void **state)
 }
 
 // test 4: moss_init_signals runs without crashing
-private void testInitSignals(void **state)
+private void test_InitSignals(void **state)
 {
     (void)state;
     moss_init_signals();
@@ -58,10 +56,10 @@ private void testInitSignals(void **state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(testGlobalsInit),
-        cmocka_unit_test(testForegroundPgid),
-        cmocka_unit_test(testInstallHandler),
-        cmocka_unit_test(testInitSignals),
+        cmocka_unit_test(test_GlobalsInit),
+        cmocka_unit_test(test_ForegroundPgid),
+        cmocka_unit_test(test_InstallHandler),
+        cmocka_unit_test(test_InitSignals),
     };
 
     return cmocka_run_group_tests(tests, setup, NULL);

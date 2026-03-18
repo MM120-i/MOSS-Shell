@@ -5,7 +5,7 @@
 
 #include "include/retry.h"
 
-private int calculateDelay(RetryContext *ctx)
+int calculateDelay(RetryContext *ctx)
 {
     int delay = ctx->config.baseDelayms;
 

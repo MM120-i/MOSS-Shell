@@ -1,6 +1,7 @@
 #pragma once
 
-#define static private
+#define private static
+#define SIZE 256
 
 extern const int NUM_BUILTINS;
 

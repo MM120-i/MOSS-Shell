@@ -31,4 +31,5 @@ typedef struct
 
 void mossRetryInit(RetryContext *, const RetryConfig *);
 RetryResult mossRetryExecute(RetryContext *, RetryOperation, void *, RetryPredicate);
-bool mossRetryShouldRetry(int errnoValue);
+bool mossRetryShouldRetry(int);
+int calculateDelay(RetryContext *);

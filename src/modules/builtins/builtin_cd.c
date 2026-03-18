@@ -18,6 +18,7 @@ private int doChdir(void *ctx)
     return chdir(chdirCtx->path);
 }
 
+// caller must free memory tho 🥀
 private char *expand_path(const char *path)
 {
     if (strcmp(path, "-") == 0)

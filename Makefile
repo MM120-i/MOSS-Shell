@@ -8,7 +8,7 @@ TEST_SRC = $(wildcard tests/*.c)
 TEST_BINS = $(TEST_SRC:.c=)
 TEST_LIBS = $(filter-out src/main.c, $(SRC))
 
-all: $(OUT) test
+all: $(OUT)
 
 $(OUT): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(OUT)
@@ -20,7 +20,7 @@ test: $(TEST_BINS)
 		./$$test || exit 1; \
 	done
 
-$(TEST_BINS): $(TEST_SRC)
+$(TEST_BINS): tests/%: tests/%.c $(TEST_LIBS)
 	$(CC) $(CFLAGS) $< $(TEST_LIBS) -o $@ -lcmocka
 
 .PHONY: all test clean
