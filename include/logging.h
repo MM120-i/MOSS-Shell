@@ -1,9 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <time.h>
-#include <stdbool.h>
-
 #define private static
 #define BUF_SIZE 32
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <signal.h>
-#include <sys/types.h>
 
 #define private static
 
