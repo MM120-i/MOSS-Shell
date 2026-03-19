@@ -35,17 +35,6 @@ MOSS includes an optional **GUI terminal built with Qt (C++)**, offering a polis
 
 This layer is fully decoupled from the core shell, preserving the clean architecture while providing a richer user experience.
 
-### **AI Voice Command Integration (Upcoming)**
-
-This optional layer will allow users to:
-
-- speak natural‑language instructions
-- have them translated into safe, validated shell commands
-- execute them through the MOSS engine
-- receive spoken or textual feedback
-
-The design keeps the AI system **outside** the core shell.
-
 ## Tech Stack
 | Category                | Technology |
 |---------------------|-------|
