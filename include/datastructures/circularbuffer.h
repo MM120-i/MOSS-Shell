@@ -14,14 +14,6 @@
 
 typedef struct CircularBuffer CircularBuffer;
 
-// this'll probably be moved to history.h later
-typedef struct HistoryManager
-{
-    CircularBuffer *buffer;
-    int cursor;
-    char *lastCommand;
-} HistoryManager;
-
 struct CircularBuffer
 {
     char **items;

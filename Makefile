@@ -1,6 +1,10 @@
 CC = gcc
 CFLAGS = -Wall -I. -Iinclude
-SRC = $(wildcard src/*.c) $(wildcard src/**/*.c) $(wildcard src/modules/builtins/*.c)
+SRC = $(wildcard src/*.c) \
+	  $(wildcard src/**/*.c) \
+	  $(wildcard src/modules/datastructures/*.c) \
+	  $(wildcard src/modules/builtins/*.c) \
+
 SRC := $(filter-out src/modules/builtin.c, $(SRC))
 OUT = shell
 
