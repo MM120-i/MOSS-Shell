@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <pwd.h>
 
-#include "src/modules/builtins/builtin.h"
+#include "../src/modules/builtins/builtin.h"
 
 private char saved_cwd[4096];
 

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#include "include/pipeline.h"
+#include "../include/pipeline.h"
 
 // helper to trim trailing whitespace (newlines)
 private void trim_newline(char *str)

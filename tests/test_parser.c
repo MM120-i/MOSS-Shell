@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "include/parser.h"
+#include "../include/parser.h"
 
 private void freeStrArray(char **arr)
 {

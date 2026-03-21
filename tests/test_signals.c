@@ -3,7 +3,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "include/signals.h"
+#include "../include/signals.h"
 
 private int setup(void **state)
 {

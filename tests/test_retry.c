@@ -6,7 +6,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "include/retry.h"
+#include "../include/retry.h"
 
 /* ==================== mossRetryShouldRetry Tests ==================== */
 
