@@ -53,3 +53,27 @@ void history_destroy()
         historyManager = NULL;
     }
 }
+
+// todo
+int history_save(char *cmd)
+{
+    return 0;
+}
+
+// todo
+int history_load(char *cmd)
+{
+    return 0;
+}
+
+// todo
+int history_count()
+{
+    return 0;
+}
+
+// todo
+const char *history_get(int num)
+{
+    return "";
+}

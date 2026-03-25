@@ -21,3 +21,6 @@ void history_add(const char *);
 bool history_should_add(const char *);
 void history_destroy();
 int history_save(char *);
+int history_load(char *);
+int history_count();
+const char *history_get(int);
