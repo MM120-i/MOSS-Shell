@@ -30,3 +30,4 @@ int moss_export(char **);
 int moss_unset(char **);
 int moss_type(char **);
 int moss_ls(char **);
+int moss_history(char **);

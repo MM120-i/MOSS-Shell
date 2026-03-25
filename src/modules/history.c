@@ -77,3 +77,18 @@ const char *history_get(int num)
 {
     return "";
 }
+
+// todo
+int history_next()
+{
+    return 0;
+}
+
+// todo
+int history_prev()
+{
+    return 0;
+}
+
+// todo
+void history_reset_cursor() {}

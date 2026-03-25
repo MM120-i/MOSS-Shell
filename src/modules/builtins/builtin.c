@@ -13,6 +13,7 @@ const struct builtin builtins[] = {
     {"unset", moss_unset},
     {"type", moss_type},
     {"ls", moss_ls},
+    {"history", moss_history},
 };
 
 const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);

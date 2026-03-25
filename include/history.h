@@ -24,3 +24,6 @@ int history_save(char *);
 int history_load(char *);
 int history_count();
 const char *history_get(int);
+int history_prev();
+int history_next();
+void history_reset_cursor();
