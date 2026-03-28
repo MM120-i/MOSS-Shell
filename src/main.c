@@ -15,6 +15,7 @@
 #include "include/retry.h"
 #include "include/parser.h"
 #include "include/pipeline.h"
+#include "include/history.h"
 
 int main(int argc, char **argv)
 {
@@ -31,7 +32,13 @@ int main(int argc, char **argv)
 
     mossLogSetFile(logFile);
     LOG_INFO("MOSS Shell starting");
+    history_init();
+    history_load(DEFAULT_HISTORY_FILE);
+
     moss_loop();
+
+    history_save(DEFAULT_HISTORY_FILE);
+    history_destroy();
     LOG_INFO("MOSS Shell shutting down");
     fclose(logFile);
 
@@ -80,6 +87,13 @@ void moss_loop()
         }
 
         status = moss_execute(args);
+
+        size_t len = strlen(line);
+        if (len > 0 && line[len - 1] == '\n')
+            line[len - 1] = '\0';
+
+        if (line[0] != '\0')
+            history_add(line);
 
         free(line);
         free(args);

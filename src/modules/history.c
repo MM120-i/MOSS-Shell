@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "include/history.h"
 #include "include/logging.h"
@@ -7,6 +9,27 @@
 #include "include/datastructures/circularbuffer.h"
 
 private HistoryManager *historyManager = NULL;
+
+private char *expand_path(const char *path)
+{
+    if (!path || path[0] != '~')
+        return NULL;
+
+    char *home = getenv("HOME");
+
+    if (!home)
+        return NULL;
+
+    char *result = (char *)malloc(strlen(home) + strlen(path));
+
+    if (!result)
+        return NULL;
+
+    strcpy(result, home);
+    strcat(result, path + 1);
+
+    return result;
+}
 
 void history_init()
 {
@@ -63,11 +86,28 @@ int history_save(char *filePath)
     if (!filePath || !historyManager || !historyManager->buffer)
         return -1;
 
-    FILE *file = fopen(filePath, "w");
+    char *expandedPath = NULL;
+    const char *pathToUse = filePath;
+
+    if (filePath[0] == '~')
+    {
+        expandedPath = expand_path(filePath);
+
+        if (!expandedPath)
+        {
+            SAFE_ERROR(ERR_CATEGORY_PATH, "Failed to expand path: %s", filePath);
+            return -1;
+        }
+
+        pathToUse = expandedPath;
+    }
+
+    FILE *file = fopen(pathToUse, "w");
 
     if (!file)
     {
-        SAFE_ERROR(ERR_CATEGORY_PATH, "Failed to open file for saving: %s", filePath);
+        SAFE_ERROR(ERR_CATEGORY_PATH, "Failed to open file for saving: %s", pathToUse);
+        free(expandedPath);
         return -1;
     }
 
@@ -82,6 +122,7 @@ int history_save(char *filePath)
     }
 
     fclose(file);
+    free(expandedPath);
     LOG_INFO("History saved: %zu entries", count);
 
     return 0;
@@ -89,15 +130,29 @@ int history_save(char *filePath)
 
 int history_load(char *filePath)
 {
-
     if (!filePath)
         return -1;
 
-    FILE *file = fopen(filePath, "r");
+    char *expandedPath = NULL;
+    const char *pathToUse = filePath;
+
+    if (filePath[0] == '~')
+    {
+        expandedPath = expand_path(filePath);
+        if (!expandedPath)
+        {
+            LOG_ERROR("Failed to expand path: %s", filePath);
+            return -1;
+        }
+        pathToUse = expandedPath;
+    }
+
+    FILE *file = fopen(pathToUse, "r");
 
     if (!file)
     {
-        LOG_ERROR("Failed to open history file: %s", filePath);
+        LOG_ERROR("Failed to open history file: %s", pathToUse);
+        free(expandedPath);
         return -1;
     }
 
@@ -106,6 +161,7 @@ int history_load(char *filePath)
     if (!fgets(line, sizeof(line), file))
     {
         fclose(file);
+        free(expandedPath);
         return -1;
     }
 
@@ -113,6 +169,7 @@ int history_load(char *filePath)
     {
         LOG_ERROR("Invalid history file header");
         fclose(file);
+        free(expandedPath);
         return -1;
     }
 
@@ -133,7 +190,8 @@ int history_load(char *filePath)
     }
 
     fclose(file);
-    LOG_INFO("History loaded: %d entries", loaded); // delete ths later
+    free(expandedPath);
+    LOG_INFO("History loaded: %d entries", loaded);
 
     return 0;
 }
@@ -208,4 +266,12 @@ void history_reset_cursor()
         return;
 
     historyManager->cursor = cb_count(historyManager->buffer);
+}
+
+void history_clear()
+{
+    if (!historyManager || !historyManager->buffer)
+        return;
+
+    cb_clear(historyManager->buffer);
 }

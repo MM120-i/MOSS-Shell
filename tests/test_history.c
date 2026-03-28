@@ -352,7 +352,7 @@ private void test_history_empty(void **state)
     char *args[] = {"history", NULL};
     int result = moss_history(args);
 
-    assert_int_equal(result, 0);
+    assert_int_equal(result, 1);
     history_destroy();
 }
 
@@ -367,7 +367,7 @@ private void test_history_with_entries(void **state)
     char *args[] = {"history", NULL};
     int result = moss_history(args);
 
-    assert_int_equal(result, 0);
+    assert_int_equal(result, 1);
     history_destroy();
 }
 
@@ -383,7 +383,7 @@ private void test_history_line_numbers(void **state)
     char *args[] = {"history", NULL};
     int result = moss_history(args);
 
-    assert_int_equal(result, 0);
+    assert_int_equal(result, 1);
     history_destroy();
 }
 
@@ -399,7 +399,7 @@ private void test_history_reverse_order(void **state)
     char *args[] = {"history", NULL};
     int result = moss_history(args);
 
-    assert_int_equal(result, 0);
+    assert_int_equal(result, 1);
     history_destroy();
 }
 

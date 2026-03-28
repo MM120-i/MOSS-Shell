@@ -28,3 +28,4 @@ const char *history_get(int);
 int history_prev();
 int history_next();
 void history_reset_cursor();
+void history_clear();
