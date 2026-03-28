@@ -225,7 +225,6 @@ int history_next()
         return -1;
     }
 
-    int old_cursor = historyManager->cursor;
     historyManager->cursor++;
 
     if (historyManager->cursor >= (int)count)
@@ -234,10 +233,7 @@ int history_next()
         return -1;
     }
 
-    if (old_cursor == 0)
-        return historyManager->cursor;
-
-    return old_cursor;
+    return historyManager->cursor;
 }
 
 int history_prev()

@@ -16,6 +16,7 @@
 #include "include/parser.h"
 #include "include/pipeline.h"
 #include "include/history.h"
+#include "include/input.h"
 
 int main(int argc, char **argv)
 {
@@ -34,9 +35,11 @@ int main(int argc, char **argv)
     LOG_INFO("MOSS Shell starting");
     history_init();
     history_load(DEFAULT_HISTORY_FILE);
+    moss_input_init();
 
     moss_loop();
 
+    moss_input_restore();
     history_save(DEFAULT_HISTORY_FILE);
     history_destroy();
     LOG_INFO("MOSS Shell shutting down");
@@ -53,11 +56,14 @@ void moss_loop()
 
     do
     {
-        printf("> ");
-        line = moss_read_line();
+        line = moss_input_readline("> ");
+
+        if (!line)
+            break;
+
         strip_comment(line);
 
-        if (line[0] == '\0')
+        if (line == NULL || line[0] == '\0')
         {
             free(line);
             continue;
@@ -86,9 +92,12 @@ void moss_loop()
             }
         }
 
+        moss_input_restore();
         status = moss_execute(args);
+        moss_input_init();
 
         size_t len = strlen(line);
+
         if (len > 0 && line[len - 1] == '\n')
             line[len - 1] = '\0';
 
@@ -98,26 +107,4 @@ void moss_loop()
         free(line);
         free(args);
     } while (status);
-}
-
-// starting with a block then dynamically allocating more space if needed
-char *moss_read_line()
-{
-    char *line = NULL;
-    size_t bufSize = 0;
-
-    if (getline(&line, &bufSize, stdin) == -1)
-    {
-        if (feof(stdin))
-        {
-            exit(EXIT_SUCCESS);
-        }
-        else
-        {
-            SAFE_ERROR(ERR_CATEGORY_INPUT, "failed to read input");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    return line;
 }
