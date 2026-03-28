@@ -4,6 +4,7 @@
 
 #define private static
 #define DEFAULT_HISTORY_SIZE 1000
+#define LINE_LENGTH 4096
 #define DEFAULT_HISTORY_FILE "~/.moss_history"
 #define HISTORY_FILE_HEADER "# moss shell history\n"
 

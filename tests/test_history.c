@@ -485,7 +485,9 @@ private void test_ctrl_d_exits(void **state)
     history_add("cmd1");
     history_add("cmd2");
     history_save(filepath);
+    history_destroy();
 
+    history_init();
     int result = history_load(filepath);
     assert_int_equal(result, 0);
     assert_int_equal(history_count(), 2);
