@@ -94,6 +94,13 @@ void moss_loop()
 
         moss_input_restore();
         status = moss_execute(args);
+
+        if (moss_got_sigint)
+        {
+            moss_got_sigint = 0;
+            printf("\n");
+        }
+
         moss_input_init();
 
         size_t len = strlen(line);
