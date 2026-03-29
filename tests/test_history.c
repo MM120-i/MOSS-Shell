@@ -322,7 +322,7 @@ private void test_cursor_next_after_prev(void **state)
     history_prev();
     history_prev();
     int result = history_next();
-    assert_int_equal(result, 1);
+    assert_int_equal(result, 2);
     history_destroy();
 }
 

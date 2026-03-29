@@ -4,14 +4,15 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "include/input.h"
 #include "include/logging.h"
 #include "include/history.h"
 
 private struct termios orig_termios;
-private int raw_mode_enabled = 0;
-private int is_first_prompt = 1;
+private bool raw_mode_enabled = false;
+private bool is_first_prompt = true;
 
 void moss_input_init()
 {
@@ -31,7 +32,7 @@ void moss_input_init()
     raw.c_cc[VTIME] = 0;
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-    raw_mode_enabled = 1;
+    raw_mode_enabled = true;
 }
 
 void moss_input_restore()
@@ -39,19 +40,21 @@ void moss_input_restore()
     if (raw_mode_enabled)
     {
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-        raw_mode_enabled = 0;
+        raw_mode_enabled = false;
     }
 }
 
 private void input_redraw_line(const char *prompt, char *buffer, size_t cursor, size_t len, size_t bufferSize)
 {
-    printf("\r\033[K");
-    printf("%s%s", prompt, buffer);
+    char output[512];
+    int pos = 0;
+
+    pos += snprintf(output + pos, sizeof(output) - pos, "\r\033[K%s%s", prompt, buffer);
 
     if (cursor < len)
-        printf("\033[%zuD", len - cursor);
+        pos += snprintf(output + pos, sizeof(output) - pos, "\033[%zuD", len - cursor);
 
-    fflush(stdout);
+    write(STDOUT_FILENO, output, pos);
 }
 
 private void input_handle_backspace(char *buffer, size_t *cursor, size_t *len, const char *prompt, size_t bufferSize)
@@ -71,7 +74,7 @@ private void input_handle_backspace(char *buffer, size_t *cursor, size_t *len, c
 
 private void input_handle_ctrl_c(char *buffer, size_t *cursor, size_t *len, int *historyView, char **historyBackup, const char *prompt)
 {
-    printf("^C\n");
+    write(STDOUT_FILENO, "^C\n", 3);
     buffer[0] = '\0';
     *len = 0;
     *cursor = 0;
@@ -79,15 +82,14 @@ private void input_handle_ctrl_c(char *buffer, size_t *cursor, size_t *len, int 
     history_reset_cursor();
     free(*historyBackup);
     *historyBackup = NULL;
-    printf("%s", prompt);
-    fflush(stdout);
+    write(STDOUT_FILENO, prompt, strlen(prompt));
 }
 
 private int input_handle_ctrl_d(size_t len, char *buffer, char *historyBackup)
 {
     if (len == 0)
     {
-        printf("exit\n");
+        write(STDOUT_FILENO, "exit\n", 5);
         free(buffer);
         free(historyBackup);
         return 1;
@@ -193,6 +195,7 @@ char *moss_input_readline(const char *prompt)
         }
 
         size_t len = strlen(line);
+
         if (len > 0 && line[len - 1] == '\n')
             line[len - 1] = '\0';
 
@@ -222,11 +225,10 @@ char *moss_input_readline(const char *prompt)
     if (!is_first_prompt)
         write(STDOUT_FILENO, "\r\n", 2);
 
-    is_first_prompt = 0;
-
+    is_first_prompt = false;
     write(STDOUT_FILENO, prompt, strlen(prompt));
 
-    while (1)
+    while (true)
     {
         char c;
 
@@ -239,7 +241,7 @@ char *moss_input_readline(const char *prompt)
 
         if (c == NEWLINE || c == CARRIAGE_RETURN)
         {
-            write(STDOUT_FILENO, "\n", 1);
+            write(STDOUT_FILENO, "\r\n", 2);
             buffer[len] = '\0';
 
             if (len > 0)
@@ -522,7 +524,7 @@ char *moss_input_readline_with_io(const char *prompt, moss_read_fn_t read_fn, mo
     snprintf(output, sizeof(output), "%s", prompt);
     write_fn(STDOUT_FILENO, output, strlen(output));
 
-    while (1)
+    while (true)
     {
         char c;
 
@@ -586,12 +588,14 @@ char *moss_input_readline_with_io(const char *prompt, moss_read_fn_t read_fn, mo
                 case LEFT:
                     if (cursor > 0)
                         cursor--;
+
                     cursorMoved = 1;
                     break;
 
                 case RIGHT:
                     if (cursor < len)
                         cursor++;
+
                     cursorMoved = 1;
                     break;
                 }
