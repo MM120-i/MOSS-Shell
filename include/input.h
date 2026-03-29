@@ -17,6 +17,7 @@ enum SpecialKey
     BACKSPACE_ALT = 8,
     CTRL_C = 3,
     CTRL_D = 4,
+    CTRL_Z = 26,
     ESCAPE = 27,
     CARRIAGE_RETURN = '\r',
     NEWLINE = '\n',

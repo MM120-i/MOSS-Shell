@@ -12,6 +12,7 @@
 #include "include/logging.h"
 #include "include/retry.h"
 #include "include/signals.h"
+#include "include/jobs.h"
 
 private int doFork(void *ctx)
 {
@@ -134,6 +135,8 @@ int moss_execute_pipeline(char **args)
         if (pid == 0)
         {
             // child process
+            setpgid(0, 0);
+
             if (i > 0)
                 dup2(pipes[(i - 1) * 2], STDIN_FILENO);
 
@@ -157,6 +160,16 @@ int moss_execute_pipeline(char **args)
             SAFE_ERROR(ERR_CATEGORY_EXEC, "Command not found: %s", commands[i][0]);
             _exit(127);
         }
+        else
+        {
+            setpgid(pid, pid);
+
+            if (i == numCommands - 1)
+            {
+                jobs_add(pid, pid, args[0]);
+                moss_foreground_pgid = pid;
+            }
+        }
 
         pids[i] = pid;
     }
@@ -167,8 +180,25 @@ int moss_execute_pipeline(char **args)
     int status;
 
     for (size_t i = 0; i < numCommands; i++)
+    {
         if (pids[i] > 0)
+        {
             waitpid(pids[i], &status, 0);
+            
+            if (WIFSTOPPED(status))
+            {
+                Job *job = jobs_get_by_pid(pids[i]);
+                if (job)
+                {
+                    job->state = JOB_STOPPED;
+                    printf("\n[%d]+ Stopped\t%s\n", job->id, job->cmd);
+                }
+            }
+        }
+    }
+
+    if (numCommands > 0 && pids[numCommands - 1] > 0)
+        jobs_remove(pids[numCommands - 1]);
 
     free(pipes);
     free(pids);
@@ -227,6 +257,7 @@ int moss_launch(char **args)
         if (errno != EACCES && errno != EINVAL && errno != ESRCH)
             SAFE_ERROR(ERR_CATEGORY_SYSTEM, "failed to set process group");
 
+    jobs_add(pid, pid, args[0]);
     moss_foreground_pgid = pid;
 
     while (true)
@@ -243,15 +274,32 @@ int moss_launch(char **args)
         }
 
         if (WIFEXITED(status))
+        {
+            jobs_remove(pid);
             break;
+        }
 
         if (WIFSIGNALED(status))
+        {
+            jobs_remove(pid);
             break;
+        }
 
         if (WIFSTOPPED(status))
-            break;
+        {
+            // Job was stopped (Ctrl+Z), keep in job table but don't remove
+            Job *job = jobs_get_by_pid(pid);
+            if (job)
+            {
+                job->state = JOB_STOPPED;
+                printf("\n[%d]+ Stopped\t%s\n", job->id, job->cmd);
+            }
+            moss_foreground_pgid = 0;
+            return 1;
+        }
     }
 
+    jobs_remove(pid);
     moss_foreground_pgid = 0;
 
     return 1;

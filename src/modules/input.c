@@ -9,6 +9,7 @@
 #include "include/input.h"
 #include "include/logging.h"
 #include "include/history.h"
+#include "include/signals.h"
 
 private struct termios orig_termios;
 private bool raw_mode_enabled = false;
@@ -260,6 +261,14 @@ char *moss_input_readline(const char *prompt)
         if (c == CTRL_C)
         {
             input_handle_ctrl_c(buffer, &cursor, &len, &historyView, &historyBackup, prompt);
+            continue;
+        }
+
+        if (c == CTRL_Z)
+        {
+            if (moss_foreground_pgid > 0)
+                kill(-moss_foreground_pgid, SIGTSTP);
+
             continue;
         }
 
