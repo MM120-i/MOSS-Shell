@@ -49,7 +49,7 @@ int moss_execute_pipeline(char **args)
         return 1;
     }
 
-    int numCommands = 1;
+    size_t numCommands = 1;
 
     for (size_t i = 0; args[i]; i++)
         if (strcmp(args[i], "|") == 0)
@@ -63,7 +63,7 @@ int moss_execute_pipeline(char **args)
         return 0;
     }
 
-    int cmdIdx = 0, argIdx = 0;
+    size_t cmdIdx = 0, argIdx = 0;
     commands[cmdIdx] = malloc(64 * sizeof(char *));
 
     for (size_t i = 0; args[i]; i++)
@@ -184,7 +184,7 @@ int moss_execute_pipeline(char **args)
         if (pids[i] > 0)
         {
             waitpid(pids[i], &status, 0);
-            
+
             if (WIFSTOPPED(status))
             {
                 Job *job = jobs_get_by_pid(pids[i]);

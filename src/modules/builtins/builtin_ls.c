@@ -132,7 +132,7 @@ int moss_ls(char **args)
 
     struct dirent *entry;
     char **entries = NULL;
-    int numberOfFiles = 0;
+    size_t numberOfFiles = 0;
 
     while ((entry = readdir(dir)) != NULL)
     {

@@ -45,7 +45,7 @@ void moss_input_restore()
     }
 }
 
-private void input_redraw_line(const char *prompt, char *buffer, size_t cursor, size_t len, size_t bufferSize)
+private void input_redraw_line(const char *prompt, char *buffer, size_t cursor, size_t len)
 {
     char output[512];
     int pos = 0;
@@ -58,7 +58,7 @@ private void input_redraw_line(const char *prompt, char *buffer, size_t cursor, 
     write(STDOUT_FILENO, output, pos);
 }
 
-private void input_handle_backspace(char *buffer, size_t *cursor, size_t *len, const char *prompt, size_t bufferSize)
+private void input_handle_backspace(char *buffer, size_t *cursor, size_t *len, const char *prompt)
 {
     if (*len > 0 && *cursor > 0)
     {
@@ -69,7 +69,7 @@ private void input_handle_backspace(char *buffer, size_t *cursor, size_t *len, c
         (*cursor)--;
         buffer[*len] = '\0';
 
-        input_redraw_line(prompt, buffer, *cursor, *len, bufferSize);
+        input_redraw_line(prompt, buffer, *cursor, *len);
     }
 }
 
@@ -168,7 +168,7 @@ private void input_handle_arrow_down(char *buffer, int *historyView, char **hist
     }
 }
 
-private void input_handle_arrow_left(size_t *cursor, size_t len)
+private void input_handle_arrow_left(size_t *cursor)
 {
     if (*cursor > 0)
         (*cursor)--;
@@ -254,7 +254,7 @@ char *moss_input_readline(const char *prompt)
 
         if (c == BACKSPACE || c == BACKSPACE_ALT)
         {
-            input_handle_backspace(buffer, &cursor, &len, prompt, bufferSize);
+            input_handle_backspace(buffer, &cursor, &len, prompt);
             continue;
         }
 
@@ -299,7 +299,7 @@ char *moss_input_readline(const char *prompt)
                     break;
 
                 case LEFT:
-                    input_handle_arrow_left(&cursor, len);
+                    input_handle_arrow_left(&cursor);
                     cursorMoved = 1;
                     break;
 
@@ -310,7 +310,7 @@ char *moss_input_readline(const char *prompt)
                 }
             }
 
-            input_redraw_line(prompt, buffer, cursor, len, bufferSize);
+            input_redraw_line(prompt, buffer, cursor, len);
             continue;
         }
 

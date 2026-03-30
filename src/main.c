@@ -18,7 +18,7 @@
 #include "include/history.h"
 #include "include/input.h"
 
-int main(int argc, char **argv)
+int main()
 {
     mossLogSetLevel(LOG_LEVEL_DEBUG);
     moss_init_signals();

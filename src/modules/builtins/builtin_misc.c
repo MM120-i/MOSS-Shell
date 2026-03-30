@@ -9,7 +9,7 @@
 #include "logging.h"
 
 extern const struct builtin builtins[];
-extern const int NUM_BUILTINS;
+extern const size_t NUM_BUILTINS;
 
 int moss_help(char **args)
 {

@@ -6,7 +6,7 @@
 #include "include/jobs.h"
 
 Job *jobs = NULL;
-private int jobCount = 0;
+private size_t jobCount = 0;
 private int nextJobId = 1;
 
 void jobs_init()
@@ -77,14 +77,14 @@ void jobs_list()
     }
 }
 
-int jobs_count()
+size_t jobs_count()
 {
     return jobCount;
 }
 
 Job *jobs_get_by_pid(pid_t pid)
 {
-    for (int i = 0; i < jobCount; i++)
+    for (size_t i = 0; i < jobCount; i++)
         if (jobs[i].pid == pid)
             return &jobs[i];
 

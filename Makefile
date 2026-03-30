@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -I. -Iinclude
+CFLAGS = -Wall -Wextra -Wpedantic -I. -Iinclude
 SRC = $(wildcard src/*.c) \
 	  $(wildcard src/**/*.c) \
 	  $(wildcard src/modules/datastructures/*.c) \
@@ -27,7 +27,7 @@ test: $(TEST_BINS)
 $(TEST_BINS): tests/%: tests/%.c $(TEST_LIBS)
 	$(CC) $(CFLAGS) $< $(TEST_LIBS) -o $@ -lcmocka
 
-.PHONY: all test clean
+.PHONY: all test clean scan
 
 clean:
 	rm -f $(OUT)

@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "builtin.h"
 
 const struct builtin builtins[] = {
@@ -16,4 +18,4 @@ const struct builtin builtins[] = {
     {"history", moss_history},
 };
 
-const int NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);
+const size_t NUM_BUILTINS = sizeof(builtins) / sizeof(struct builtin);

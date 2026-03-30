@@ -29,5 +29,5 @@ void jobs_remove(pid_t);
 Job *jobs_get(int);
 Job *jobs_get_by_pid(pid_t);
 void jobs_list();
-int jobs_count();
+size_t jobs_count();
 void jobs_destroy();
