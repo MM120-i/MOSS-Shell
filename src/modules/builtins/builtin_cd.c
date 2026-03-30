@@ -59,7 +59,7 @@ private char *expand_path(const char *path)
             }
 
             size_t totalLength = strlen(home) + strlen(path + 1) + 1;
-            char *expanded = (char *)malloc(totalLength);
+            char *expanded = (char *)calloc(1, totalLength);
 
             if (!expanded)
             {
