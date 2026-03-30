@@ -129,7 +129,7 @@ int moss_cd(char **args)
     if (args[1] && strcmp(args[1], "-") == 0)
         printf("%s\n", targetPath);
 
-    char resolved[PATH_MAX];
+    char resolved[PATH_MAX] = {0};
 
     if (realpath(targetPath, resolved) == NULL)
     {
