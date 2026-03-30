@@ -27,8 +27,18 @@ test: $(TEST_BINS)
 $(TEST_BINS): tests/%: tests/%.c $(TEST_LIBS)
 	$(CC) $(CFLAGS) $< $(TEST_LIBS) -o $@ -lcmocka
 
-.PHONY: all test clean scan
+.PHONY: all test clean scan check-mem
 
 clean:
 	rm -f $(OUT)
 	rm -f $(TEST_BINS)
+
+scan:
+	cppcheck --enable=all --force -Iinclude src/
+
+check-mem:
+	@echo "Running memory checks with valgrind..."
+	@for test in $(TEST_BINS); do \
+		echo "Checking $$test..."; \
+		valgrind --leak-check=full --error-exitcode=1 ./$$test || exit 1; \
+	done
