@@ -19,7 +19,7 @@ private char *expand_path(const char *path)
 
     if (!home)
         return NULL;
-
+        
     char *result = (char *)malloc(strlen(home) + strlen(path));
 
     if (!result)
