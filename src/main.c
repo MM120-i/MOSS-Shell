@@ -26,10 +26,7 @@ int main()
     FILE *logFile = fopen("moss.log", "a");
 
     if (!logFile)
-    {
         fprintf(stderr, "Failed to open log file\n");
-        return EXIT_FAILURE;
-    }
 
     mossLogSetFile(logFile);
     LOG_INFO("MOSS Shell starting");
