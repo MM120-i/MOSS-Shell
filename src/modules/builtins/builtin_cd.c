@@ -168,5 +168,5 @@ int moss_cd(char **args)
     if (args[2])
         SAFE_ERROR(ERR_CATEGORY_INPUT, "cd: too many arguments");
 
-    return 0;
+    return 1;
 }
