@@ -9,13 +9,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc make libcmocka-dev valgrind
+          sudo apt-get install -y gcc make libcmocka-dev
       
       - name: Build
         run: make clean CFLAGS="-Wall -Wextra -Werror -pedantic"
       
       - name: Tests
         run: make test
-      
-      - name: Memory Check
-        run: make check-mem

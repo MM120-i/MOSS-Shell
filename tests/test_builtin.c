@@ -349,7 +349,7 @@ private void test_cd_noArgs(void **state)
 
     char *args[] = {"cd", NULL};
     int result = moss_cd(args);
-    char cwd[4096];
+    char cwd[4096] = {0};
     getcwd(cwd, sizeof(cwd));
     chdir(saved_cwd);
     assert_int_equal(result, 1);
