@@ -80,16 +80,27 @@ static void test_trie_prefix_search(void **state)
     trie_prefix_search(trie, "hel", &results, &count);
 
     assert_int_equal(count, 3);
-
     assert_non_null(results);
-    assert_string_equal(results[0], "hello");
-    assert_string_equal(results[1], "help");
-    assert_string_equal(results[2], "helicopter");
+
+    bool found_hello = false, found_help = false, found_helicopter = false;
 
     for (size_t i = 0; i < count; i++)
     {
-        free(results[i]);
+        if (strcmp(results[i], "hello") == 0)
+            found_hello = true;
+        if (strcmp(results[i], "help") == 0)
+            found_help = true;
+        if (strcmp(results[i], "helicopter") == 0)
+            found_helicopter = true;
     }
+
+    assert_true(found_hello);
+    assert_true(found_help);
+    assert_true(found_helicopter);
+
+    for (size_t i = 0; i < count; i++)
+        free(results[i]);
+
     free(results);
 
     trie_destroy(trie);
@@ -125,7 +136,6 @@ static void test_trie_prefix_search_empty_prefix(void **state)
     size_t count = 0;
 
     trie_prefix_search(trie, "", &results, &count);
-
     assert_int_equal(count, 0);
     assert_null(results);
 

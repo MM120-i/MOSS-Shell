@@ -1,11 +1,22 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stddef.h>
 
 #define private static
+#define NODE_SIZE 256
 
 typedef struct Trie Trie;
+
+typedef struct TrieNode
+{
+    struct TrieNode *children[NODE_SIZE];
+    bool isEndofWord;
+} TrieNode;
+
+struct Trie
+{
+    TrieNode *root;
+};
 
 Trie *trie_create();
 void trie_destroy(Trie *);
