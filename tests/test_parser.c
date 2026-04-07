@@ -336,7 +336,7 @@ private void test_strip_comment_singleQuote(void **state)
 
 // ======================= Main =======================
 
-int main(void)
+int main()
 {
     const struct CMUnitTest tests[] = {
         /* expandEnvVar tests */
