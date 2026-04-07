@@ -96,7 +96,7 @@ int moss_cd(char **args)
 {
     char *targetPath = NULL;
     char *expandedPath = NULL;
-    char currentDir[PATH_MAX];
+    char currentDir[PATH_MAX] = {0};
 
     if (getcwd(currentDir, sizeof(currentDir)) == NULL)
     {
@@ -106,15 +106,15 @@ int moss_cd(char **args)
 
     if (!args[1])
     {
-        targetPath = getenv("HOME");
+        const char *home = getenv("HOME");
 
-        if (!targetPath)
+        if (!home)
         {
             SAFE_ERROR(ERR_CATEGORY_PATH, "Home directory is not set");
             return 1;
         }
 
-        targetPath = strdup(targetPath);
+        targetPath = strdup(home);
     }
     else
     {

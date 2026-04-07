@@ -40,5 +40,5 @@ check-mem:
 	@echo "Running memory checks with valgrind..."
 	@for test in $(TEST_BINS); do \
 		echo "Checking $$test..."; \
-		valgrind --leak-check=full --error-exitcode=1 ./$$test || exit 1; \
+		valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$$test || exit 1; \
 	done
