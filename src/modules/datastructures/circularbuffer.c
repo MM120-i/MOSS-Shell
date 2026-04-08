@@ -52,7 +52,7 @@ const char *cb_get(const CircularBuffer *cb, size_t index)
     return cb->items[actual];
 }
 
-void cb_destory(CircularBuffer *cb)
+void cb_destroy(CircularBuffer *cb)
 {
     if (!cb)
         return;

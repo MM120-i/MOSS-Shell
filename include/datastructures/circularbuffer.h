@@ -1,10 +1,3 @@
-/**
- * So for history im creating a special wrapper that handles:
- * - Duplicate detection
- * - String ownership
- * - Navigation Cursor
- */
-
 #pragma once
 
 #include <stdbool.h>
@@ -13,7 +6,6 @@
 #define private static
 
 typedef struct CircularBuffer CircularBuffer;
-
 struct CircularBuffer
 {
     char **items;
@@ -23,7 +15,7 @@ struct CircularBuffer
 };
 
 CircularBuffer *cb_create(size_t);
-void cb_destory(CircularBuffer *);
+void cb_destroy(CircularBuffer *);
 int cb_add(CircularBuffer *, const char *);
 const char *cb_get(const CircularBuffer *, size_t);
 size_t cb_count(const CircularBuffer *);
