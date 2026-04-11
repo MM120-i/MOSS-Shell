@@ -6,6 +6,7 @@
 #define private static
 
 typedef struct CircularBuffer CircularBuffer;
+
 struct CircularBuffer
 {
     char **items;
