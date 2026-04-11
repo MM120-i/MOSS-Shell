@@ -15,7 +15,7 @@ private void collect_all_words(TrieNode *node, const char *prefix, char ***resul
     {
         if (*count >= *capacity)
         {
-            *capacity = (*capacity) ? 16 : *capacity * 2;
+            *capacity = (*capacity == 0) ? 16 : *capacity * 2;
             *results = (char **)realloc(*results, *capacity * sizeof(char *));
         }
 
@@ -140,9 +140,6 @@ Trie *trie_create()
     return trie;
 }
 
-/**
- * Recursively frees all the nodes in the trie
- */
 void trie_destroy(Trie *trie)
 {
     if (!trie)
@@ -152,10 +149,6 @@ void trie_destroy(Trie *trie)
     free(trie);
 }
 
-/**
- * Traverse and create nodes for each char
- * Marks the last node as "end of word"
- */
 int trie_insert(Trie *trie, const char *word)
 {
     if (!trie || !word)
@@ -183,10 +176,6 @@ int trie_insert(Trie *trie, const char *word)
     return 0;
 }
 
-/**
- * Traverse nodes for each char
- * Return true only if word exists and mark it as "end of word", otherwise return false
- */
 bool trie_search(Trie *trie, const char *word)
 {
     if (!trie || !word)
@@ -207,11 +196,6 @@ bool trie_search(Trie *trie, const char *word)
     return curr->isEndofWord;
 }
 
-/**
- * Traverse to the node matching the prefix
- * Collects ALL words from that node (recursively - dfs)
- * Gives us an array of strings and count
- */
 void trie_prefix_search(Trie *trie, const char *prefix, char ***results, size_t *count)
 {
     if (!trie || !prefix)
@@ -224,9 +208,6 @@ void trie_prefix_search(Trie *trie, const char *prefix, char ***results, size_t 
     collect_words_with_prefix(trie->root, prefix, results, count, &capacity);
 }
 
-/**
- * Same as prefix_search() but just returns the count
- */
 size_t trie_prefix_count(Trie *trie, const char *prefix)
 {
     if (!trie)
