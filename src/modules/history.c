@@ -75,7 +75,7 @@ void history_destroy()
 {
     if (historyManager)
     {
-        cb_destory(historyManager->buffer);
+        cb_destroy(historyManager->buffer);
         free(historyManager);
         historyManager = NULL;
     }
