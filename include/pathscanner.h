@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #define private static
 
 #include "datastructures/trie.h"
