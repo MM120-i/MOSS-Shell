@@ -11,10 +11,9 @@
 
 int main()
 {
-    // const struct CMUnitTest tests[] = {
-    //     // test cases
-    // };
+    const struct CMUnitTest tests[] = {
 
-    // return cmocka_run_group_tests(tests, NULL, NULL);
-    return 0;
+    };
+
+    return cmocka_run_group_tests(tests, NULL, NULL);
 }

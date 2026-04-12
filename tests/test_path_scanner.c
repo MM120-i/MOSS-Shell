@@ -21,11 +21,11 @@ private void test_path_get_from_env(void **state)
 
 // Test 2: Get PATH returns NULL when not set (edge case)
 // TODO
-private void test_path_get_null(void **state)
-{
-    (void)state;
-    // This'll need mocking, kinda hard ngl
-}
+// private void test_path_get_null(void **state)
+// {
+//     (void)state;
+//     // This'll need mocking, kinda hard ngl
+// }
 
 // Test 3: Scan single valid directory
 private void test_scan_single_directory(void **state)

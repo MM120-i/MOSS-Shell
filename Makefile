@@ -4,6 +4,7 @@ SRC = $(wildcard src/*.c) \
 	  $(wildcard src/**/*.c) \
 	  $(wildcard src/modules/datastructures/*.c) \
 	  $(wildcard src/modules/builtins/*.c) \
+	  $(wildcard src/modules/autocomplete/*.c) \
 
 SRC := $(filter-out src/modules/builtin.c, $(SRC))
 OUT = shell
