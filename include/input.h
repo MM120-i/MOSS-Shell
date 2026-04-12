@@ -21,6 +21,7 @@ enum SpecialKey
     ESCAPE = 27,
     CARRIAGE_RETURN = '\r',
     NEWLINE = '\n',
+    TAB = '\t',
 };
 
 typedef ssize_t (*moss_read_fn_t)(int, void *, size_t);
