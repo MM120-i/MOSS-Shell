@@ -23,7 +23,7 @@ private bool is_in_array(const char **array, size_t size, const char *str)
 private char *strip_extension(const char *filename)
 {
     char *dot = strrchr(filename, '.');
-    
+
     if (dot && strcmp(dot, ".exe") == 0)
     {
         size_t len = dot - filename;
@@ -32,7 +32,7 @@ private char *strip_extension(const char *filename)
         result[len] = '\0';
         return result;
     }
-    
+
     return strdup(filename);
 }
 
@@ -280,3 +280,8 @@ int path_scanner_populate_trie(Trie *trie)
 
     return 0;
 }
+
+/**
+ * Scan dirs
+ * path_sanner_scan_dirs();
+ */

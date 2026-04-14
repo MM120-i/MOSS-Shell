@@ -1,3 +1,7 @@
+/**
+ * @note This feature is not integrated with the app yet.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -147,3 +151,8 @@ int autocomplete_cycle_next()
 
     return 0;
 }
+
+/**
+ * Context aware
+ * completion_context_getPrefix();
+ */

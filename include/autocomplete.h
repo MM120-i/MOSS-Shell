@@ -15,3 +15,4 @@ size_t autocomplete_get_suggestion_count();
 const char *autocomplete_get_suggestion(size_t);
 void autocomplete_reset_cycle();
 int autocomplete_cycle_next();
+// completion_context_getPrefix();
