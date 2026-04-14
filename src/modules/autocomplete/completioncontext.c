@@ -91,7 +91,7 @@ CompletionContext completion_context_detect(const char *buffer, size_t cursor)
     char *prefix = completion_context_getPrefix(buffer, cursor);
     size_t wordCount = word_count(buffer);
 
-    if (word_count == 0 || word_count == 1)
+    if (wordCount == 0 || wordCount == 1)
     {
         free(prefix);
         return CONTEXT_COMMAND;
