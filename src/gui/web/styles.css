@@ -1,0 +1,12 @@
+body{
+    margin:0;
+    padding:0;
+    background:#1e1e2e;
+    height:100vh;
+    overflow:hidden
+}
+
+#term{
+    height:100vh;
+    padding:4px
+}
