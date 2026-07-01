@@ -8,9 +8,9 @@
 #include "include/logging.h"
 #include "include/datastructures/circularbuffer.h"
 
-private HistoryManager *historyManager = NULL;
+static HistoryManager *historyManager = NULL;
 
-private char *expand_path(const char *path)
+static char *expand_path(const char *path)
 {
     if (!path || path[0] != '~')
         return NULL;

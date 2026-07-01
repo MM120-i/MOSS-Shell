@@ -282,6 +282,7 @@ int path_scanner_populate_trie(Trie *trie)
 }
 
 /**
+ * @todo
  * Scan dirs
  * path_sanner_scan_dirs();
  */
