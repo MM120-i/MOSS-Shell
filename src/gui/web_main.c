@@ -71,14 +71,16 @@ static int pty_fork_and_exec(void) {
 
     if (pid == 0) {
         setenv("TERM", "xterm-256color", 1);
-        char *args[] = {"/bin/bash", NULL};
-        execvp("/bin/bash", args);
+        char *args[] = {"./shell", NULL};
+        execvp("./shell", args);
         perror("execvp");
         _exit(127);
     }
 
     int flags = fcntl(master_fd, F_GETFL, 0);
     fcntl(master_fd, F_SETFL, flags | O_NONBLOCK);
+    struct winsize ws = { 50, 140, 0, 0 };
+    ioctl(master_fd, TIOCSWINSZ, &ws);
     s_master_fd = master_fd;
     s_shell_pid = pid;
 
