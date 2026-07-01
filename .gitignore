@@ -24,5 +24,10 @@ Thumbs.db
 core
 *.core
 
+# Generated web assets (auto-created by make)
+src/gui/web/*.html.h
+src/gui/web/*.css.h
+src/gui/web/*.js.h
+
 *.md
 *.txt
