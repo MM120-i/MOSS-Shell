@@ -27,7 +27,7 @@ A POSIX compliant Unix shell written in C with 13 builtins, pipeline execution, 
 
 ## Screenshot
 
-![alt text](image.png)
+![alt text](public/image.png)
 
 ---
 
