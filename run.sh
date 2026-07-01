@@ -6,7 +6,7 @@ case "$1" in
         make clean && make && ./shell.exe
         ;;
     web)
-        make clean && make web && ./moss-web.exe
+        make clean && make && make web && ./moss-web.exe
         ;;
     *)
         echo "Usage: $0 {test|shell|web}"

@@ -6,7 +6,7 @@ SRC = $(wildcard src/*.c) \
 	  $(wildcard src/modules/builtins/*.c) \
 	  $(wildcard src/modules/autocomplete/*.c) \
 
-SRC := $(filter-out src/modules/builtin.c, $(SRC))
+SRC := $(filter-out src/modules/builtin.c src/gui/web_main.c, $(SRC))
 OUT = shell
 
 WEB_SRC = src/gui/web_main.c

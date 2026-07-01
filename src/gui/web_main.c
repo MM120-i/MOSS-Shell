@@ -27,6 +27,8 @@ static volatile sig_atomic_t s_running = 1;
 static int s_master_fd = -1;
 static pid_t s_shell_pid = -1;
 static struct mg_connection *s_ws_conn = NULL;
+static char s_pty_buf[65536];
+static size_t s_pty_buf_len = 0;
 
 enum {
     HTTP_OK = 200,
@@ -44,8 +46,15 @@ static void pty_poll_cb(void *arg) {
     char buf[4096];
     ssize_t n = read(s_master_fd, buf, sizeof(buf));
 
-    if (n > 0 && s_ws_conn) 
-        mg_ws_send(s_ws_conn, buf, (size_t)n, WEBSOCKET_OP_BINARY);
+    if (n > 0) {
+        if (s_ws_conn) {
+            mg_ws_send(s_ws_conn, buf, (size_t)n, WEBSOCKET_OP_TEXT);
+        } 
+        else if (s_pty_buf_len + (size_t)n < sizeof(s_pty_buf)) {
+            memcpy(s_pty_buf + s_pty_buf_len, buf, (size_t)n);
+            s_pty_buf_len += (size_t)n;
+        }
+    }
 
     if (n == 0) 
         s_running = 0;
@@ -62,8 +71,8 @@ static int pty_fork_and_exec(void) {
 
     if (pid == 0) {
         setenv("TERM", "xterm-256color", 1);
-        char *args[] = {"./shell", NULL};
-        execvp("./shell", args);
+        char *args[] = {"/bin/bash", NULL};
+        execvp("/bin/bash", args);
         perror("execvp");
         _exit(127);
     }
@@ -95,6 +104,12 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
             
         case MG_EV_WS_OPEN:
             s_ws_conn = c;
+
+            if (s_pty_buf_len > 0) {
+                mg_ws_send(c, s_pty_buf, s_pty_buf_len, WEBSOCKET_OP_BINARY);
+                s_pty_buf_len = 0;
+            }
+
             printf("WebSocket connected\n");
             break;
 
@@ -118,7 +133,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
             }
 
             break;
-            }
+        }
 
         case MG_EV_CLOSE:
             if (c == s_ws_conn) {
