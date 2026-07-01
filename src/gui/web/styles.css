@@ -27,7 +27,6 @@ body {
     justify-content: center;
 }
 
-/* ==== Scanlines overlay ==== */
 #scanlines {
     position: fixed;
     inset: 0;
@@ -42,7 +41,6 @@ body {
     );
 }
 
-/* ==== Outer glow pulse ==== */
 #glow {
     position: fixed;
     inset: 0;
@@ -58,7 +56,6 @@ body {
     50% { opacity: 1; }
 }
 
-/* ==== Frame ==== */
 #frame {
     position: relative;
     width: 98vw;
@@ -76,13 +73,13 @@ body {
     overflow: hidden;
 }
 
-/* Corner decorations */
 #frame::before, #frame::after {
     content: '';
     position: absolute;
     z-index: 2;
     pointer-events: none;
 }
+
 #frame::before {
     top: -1px; left: -1px;
     width: 24px; height: 24px;
@@ -90,7 +87,7 @@ body {
     border-left: 2px solid var(--cyan);
     border-radius: 6px 0 0 0;
 }
-/* top-right corner */
+
 #frame::after {
     top: -1px; right: -1px;
     width: 24px; height: 24px;
@@ -99,7 +96,6 @@ body {
     border-radius: 0 6px 0 0;
 }
 
-/* ==== Header ==== */
 #header {
     display: flex;
     justify-content: space-between;
@@ -153,13 +149,11 @@ body {
     50% { opacity: 0.3; }
 }
 
-/* ==== Terminal ==== */
 #term {
     flex: 1;
     padding: 4px 8px;
 }
 
-/* ==== Footer ==== */
 #footer {
     display: flex;
     justify-content: space-between;
@@ -176,7 +170,6 @@ body {
 
 #dims { letter-spacing: 1px; }
 
-/* ==== xterm overrides ==== */
 .xterm-viewport::-webkit-scrollbar { width: 4px; }
 .xterm-viewport::-webkit-scrollbar-track { background: rgba(0,240,255,0.03); }
 .xterm-viewport::-webkit-scrollbar-thumb {
@@ -188,7 +181,6 @@ body {
     background: var(--cyan);
 }
 
-/* Bottom corner decorations mirroring the top */
 #frame .corner-bl::after,
 #frame .corner-br::after {
     content: '';

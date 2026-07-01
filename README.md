@@ -1,73 +1,118 @@
-# **MOSS — Modern Operating System Shell**
+# MOSS — POSIX Shell & Web Terminal
 
-A high‑performance, POSIX‑compatible shell engineered for reliability, clarity, and extensibility.  
-Built with a systems‑first mindset and a focus on correctness, job control, and clean architecture.
-
----
-
-## **Why MOSS even Exists**
-
-I’ve relied heavily on CLI tools, but even with years of experience, I kept running into the same problem: forgetting rarely used commands,
-mistyping long pipelines, or losing time re‑typing entire commands because of a tiny spelling error. Traditional shells are powerful, but they’re unforgiving
-one wrong character and the whole workflow collapses.
-
-MOSS is built to eliminate that friction. It introduces intelligent autocomplete, future AI‑powered voice commands, and even tolerant command interpretation so that slight spelling mistakes don’t break your flow.
-The goal is simple: a shell that understands what you meant, not just what you typed, and one that accelerates your work instead of slowing you down.
+A POSIX compliant Unix shell written in C with 13 builtins, pipeline execution, and a real-time web terminal GUI served from a single zero dependency binary.
 
 ---
 
-## **Features**
+## Features
 
-- **Full command execution** with POSIX‑style semantics
-- **Robust job control** (foreground, background, signals, process groups)
-- **Clean parsing architecture** (tokenization, quoting, variable expansion, pipelines)
-- **Built‑in commands** (`cd`, `exit`, `export`, and more)
-- **Retry system** for resilient operations
+### CLI Shell
 
-### **Graphical User Interface (Qt)** (Upcoming)
+- **13 builtin commands** — `cd`, `pwd`, `echo`, `ls`, `export`, `env`, `unset`, `whoami`, `clear`, `help`, `type`, `history`, `exit`
+- **Pipeline execution** — multi-stage pipes via `fork()` / `execvp()` / `pipe()` / `dup2()`
+- **Scrollable history** — circular buffer with configurable capacity, persistent to disk
+- **Exponential backoff retry** — resilient `cd` path resolution with up to 3 retries
+- **168 cmocka unit tests** — 11 test suites, zero-warning build (`-Wall -Wextra -Wpedantic`)
 
-MOSS includes an optional **GUI terminal built with Qt (C++)**, offering a polished, modern interface on top of the shell engine.
+### Web Terminal GUI
 
-- multiple terminal tabs
-- custom themes
-- smooth rendering
-- future plugin support
+- **Real-time browser terminal** — `xterm.js` real-time rendering
+- **PTY-based shell multiplexing** — `forkpty()` spawns the shell inside a pseudo-terminal, I/O streamed over WebSocket
+- **TIOCSWINSZ dynamic resize** — browser window resize triggers PTY ioctl, shell redraws instantly
+- **Zero-dependency deployment** — 282 KB single binary with all `HTML/CSS/JS` embedded at compile time
+- **Badass UI** — neon cyan/magenta frame, scanlines, custom scrollbars, Space Grotesk + Cascadia Code fonts
+- **Non-blocking I/O** — `O_NONBLOCK` on PTY master fd, epoll-based event loop via Mongoose
 
-This layer is fully decoupled from the core shell, preserving the clean architecture while providing a richer user experience.
-
-## Tech Stack
-| Category                | Technology |
-|---------------------|-------|
-| Language | C (POSIX Compliant) |
-| Complier | GCC |
-| Build System    | Makefile |
-| Testing             | cmocka |
-| Platform | Unix/Posix (Linux, macOS, Cygwin)|
-| Planned GUI | Qt (C++) |
 ---
 
-## **Quick Start**
+## Screenshot
 
-### **Clone the repository**
+![alt text](image.png)
+
+---
+
+## Architecture
+
+```
+Browser (xterm.js)
+      │ WebSocket
+      ▼
+moss-web.exe (Mongoose HTTP/WS server)
+      │ read/write master_fd
+      ▼
+PTY (forkpty) ─── shell.exe (MOSS shell)
+```
+
+- `shell.exe` — the CLI shell binary (POSIX, ~136 KB)
+- `moss-web.exe` — the web server binary (Mongoose + embedded frontend, ~282 KB)
+- `scripts/embed.pl` — build tool that bakes frontend files into C byte arrays
+- `lib/mongoose/` — Cesanta Mongoose v7.22 (single-file HTTP/WebSocket library)
+
+---
+
+## Quick Start
 
 ```bash
 git clone https://github.com/MM120-i/MOSS-Shell.git
 cd MOSS-Shell
 ```
 
-# **Usage**
+### CLI Shell
 
-MOSS behaves like a modern POSIX shell while maintaining a clean, modular internal architecture.  
-This guide walks through the core capabilities and advanced features available in the shell.
+```bash
+make
+./shell
+```
+
+### Web Terminal
+
+```bash
+make
+make web
+./run.sh web
+```
+
+Then open `http://localhost:8080` in your browser. Set a custom port with `MOSS_PORT=9090 ./moss-web.exe`.
 
 ---
 
-## **Running Commands**
+## Tech Stack
 
-MOSS executes standard system commands exactly as you’d expect:
+| Category | Technology |
+|---|---|
+| Language | C (C17, POSIX) |
+| Compiler | GCC |
+| Build | GNU Make |
+| Testing | cmocka (168 tests, 11 suites) |
+| CI | GitHub Actions (Ubuntu) |
+| Web Server | Mongoose (embedded, single-file) |
+| Terminal | xterm.js + xterm-addon-fit |
+| Platforms | Linux, macOS, Cygwin |
 
-```bash
-ls
-pwd
-echo "Hello from MOSS"
-```
+---
+
+## Builtin Commands
+
+| Command | Description |
+|---|---|
+| `cd [dir]` | Change directory (`~`, `-`, relative paths, 3-retry backoff) |
+| `pwd` | Print working directory |
+| `echo [args...]` | Print arguments to stdout |
+| `ls [-la] [path]` | List directory (custom implementation, color output) |
+| `export NAME=VAL` | Set environment variable |
+| `env` | Print all environment variables |
+| `unset NAME` | Remove environment variable |
+| `whoami` | Print current user |
+| `clear` | Clear terminal (ANSI escape) |
+| `help` | List all builtins |
+| `type [cmd]` | Identify builtin vs. external command |
+| `history [-c]` | View or clear command history |
+| `exit` | Exit the shell |
+
+External commands are passed through to `execvp()` and resolved from system `PATH`.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE)
