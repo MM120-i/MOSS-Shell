@@ -1,4 +1,4 @@
-# MOSS — POSIX Shell & Web Terminal
+# MOSS: POSIX Shell & Web Terminal ⛓️
 
 A POSIX compliant Unix shell written in C with 13 builtins, pipeline execution, and a real-time web terminal GUI served from a single zero dependency binary.
 
@@ -8,20 +8,20 @@ A POSIX compliant Unix shell written in C with 13 builtins, pipeline execution, 
 
 ### CLI Shell
 
-- **13 builtin commands** — `cd`, `pwd`, `echo`, `ls`, `export`, `env`, `unset`, `whoami`, `clear`, `help`, `type`, `history`, `exit`
-- **Pipeline execution** — multi-stage pipes via `fork()` / `execvp()` / `pipe()` / `dup2()`
-- **Scrollable history** — circular buffer with configurable capacity, persistent to disk
-- **Exponential backoff retry** — resilient `cd` path resolution with up to 3 retries
-- **168 cmocka unit tests** — 11 test suites, zero-warning build (`-Wall -Wextra -Wpedantic`)
+- **13 builtin commands**: `cd`, `pwd`, `echo`, `ls`, `export`, `env`, `unset`, `whoami`, `clear`, `help`, `type`, `history`, `exit`
+- **Pipeline execution**: Multi-stage pipes via `fork()` / `execvp()` / `pipe()` / `dup2()`
+- **Scrollable history**: Circular buffer with configurable capacity, persistent to disk
+- **Exponential backoff retry**: Resilient `cd` path resolution with up to 3 retries
+- **168 cmocka unit tests**: 11 test suites, zero-warning build (`-Wall -Wextra -Wpedantic`)
 
 ### Web Terminal GUI
 
-- **Real-time browser terminal** — `xterm.js` real-time rendering
-- **PTY-based shell multiplexing** — `forkpty()` spawns the shell inside a pseudo-terminal, I/O streamed over WebSocket
-- **TIOCSWINSZ dynamic resize** — browser window resize triggers PTY ioctl, shell redraws instantly
-- **Zero-dependency deployment** — 282 KB single binary with all `HTML/CSS/JS` embedded at compile time
-- **Badass UI** — neon cyan/magenta frame, scanlines, custom scrollbars, Space Grotesk + Cascadia Code fonts
-- **Non-blocking I/O** — `O_NONBLOCK` on PTY master fd, epoll-based event loop via Mongoose
+- **Real-time browser terminal**: `xterm.js` real-time rendering
+- **PTY-based shell multiplexing**: `forkpty()` spawns the shell inside a pseudo-terminal, I/O streamed over WebSocket
+- **TIOCSWINSZ dynamic resize**: Browser window resize triggers PTY ioctl, shell redraws instantly
+- **Zero-dependency deployment**: 282 KB single binary with all `HTML/CSS/JS` embedded at compile time
+- **Badass UI**: Neon cyan/magenta frame, scanlines, custom scrollbars, Space Grotesk + Cascadia Code fonts
+- **Non-blocking I/O**: `O_NONBLOCK` on PTY master fd, epoll-based event loop via Mongoose
 
 ---
 
@@ -43,10 +43,10 @@ moss-web.exe (Mongoose HTTP/WS server)
 PTY (forkpty) ─── shell.exe (MOSS shell)
 ```
 
-- `shell.exe` — the CLI shell binary (POSIX, ~136 KB)
-- `moss-web.exe` — the web server binary (Mongoose + embedded frontend, ~282 KB)
-- `scripts/embed.pl` — build tool that bakes frontend files into C byte arrays
-- `lib/mongoose/` — Cesanta Mongoose v7.22 (single-file HTTP/WebSocket library)
+- `shell.exe`: The CLI shell binary (POSIX, ~136 KB)
+- `moss-web.exe`: The web server binary (Mongoose + embedded frontend, ~282 KB)
+- `scripts/embed.pl`: Build tool that bakes frontend files into C byte arrays
+- `lib/mongoose/`: Cesanta Mongoose v7.22 (single-file HTTP/WebSocket library)
 
 ---
 
