@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc make libcmocka-dev
+
+      - name: Build shell
+        run: make
+
+      - name: Build web server
+        run: make web
+
+      - name: Run tests
+        run: make test
+
+      - name: Rename artifacts
+        run: |
+          mv shell moss-shell-linux
+          mv moss-web moss-web-linux
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            moss-shell-linux
+            moss-web-linux
+          generate_release_notes: true
